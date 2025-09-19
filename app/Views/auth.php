@@ -37,7 +37,7 @@
         </div>
 
         <div class="auth_container">
-            <div id="Log_in">
+            <div id="auth_form" class="authsection user_login active">
                 <h2>Log In</h2>
                 <?php if (session()->has('error')): ?>
                     <script>
@@ -68,39 +68,38 @@
                     </div>
                     <button type="submit" name="login_submit" class="auth_btn">Log In</button>
                     <div class="footer_line">
-                        <h6>Don't have an account? <span class="page_move_btn" onclick="signuppage()">Sign Up</span></h6>
-                    </div>
-                </form>
-            </div>
-
-            <div id="sign_up" class="d-none">
-                <h2>Sign Up</h2>
-                <form action="<?= base_url('signup') ?>" method="POST">
-                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="Username" placeholder=" " required>
-                        <label for="Username">Username</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="email" class="form-control" name="Email" placeholder=" " required>
-                        <label for="Email">Email</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="Password" placeholder=" " required>
-                        <label for="Password">Password</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="CPassword" placeholder=" " required>
-                        <label for="CPassword">Confirm Password</label>
-                    </div>
-                    <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up</button>
-                    <div class="footer_line">
-                        <h6>Already have an account? <span class="page_move_btn" onclick="loginpage()">Log In</span></h6>
+                        <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
                     </div>
                 </form>
             </div>
         </div>
     </section>
+
+    <!-- Hidden signup form template -->
+    <template id="signup_template">
+        <div class="authsection user_signup">
+            <h2>Sign Up</h2>
+            <form action="<?= base_url('signup') ?>" method="POST">
+                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                <div class="form-floating">
+                    <input type="email" class="form-control" name="Email" placeholder=" " required>
+                    <label for="Email">Email</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="Password" placeholder=" " required>
+                    <label for="Password">Password</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="CPassword" placeholder=" " required>
+                    <label for="CPassword">Confirm Password</label>
+                </div>
+                <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up</button>
+                <div class="footer_line">
+                    <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
+                </div>
+            </form>
+        </div>
+    </template>
 
     <script src="<?= base_url('js/index.js') ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>

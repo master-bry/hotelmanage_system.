@@ -18,7 +18,7 @@ body {
     /* overflow: hidden; */
 }
 
-.carousel_section{
+.carousel_section {
     box-shadow: var(--bg-box-shadow);
 }
 /* side photo css */
@@ -45,7 +45,7 @@ section {
     height: 60px;
     display: flex;
     justify-content: center;
-    margin:20px 0;
+    margin: 20px 0;
 }
 
 .logo .bluebirdlogo {
@@ -64,62 +64,19 @@ section {
 .auth_container {
     height: 80%;
     margin: 50px;
-}
-
-#Log_in {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.role_btn {
-    display: flex;
-    gap: 30px;
-    margin: 20px 0;
-    flex-wrap: wrap;
-}
-
-.role_btn .btns {
-    height: 40px;
-    width: 200px;
-    border: none;
-    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 20px;
-    background-color: rgba(93, 102, 116, 0.318);
-    font-size: 17px;
-    font-weight: 700;
 }
 
-.role_btn .btns:hover{
-    background-image: linear-gradient(90deg, rgba(76, 185, 236, 0.527), rgba(0, 30, 255, 0.456));
-    transition: ease-in-out;
-    color: white;
-}
-
-.btns.active{
-    background-image: linear-gradient(90deg, rgba(76, 185, 236, 0.527), rgba(0, 30, 255, 0.456));
-    color: white;
-}
-
-.authsection {
+#auth_form {
     width: 70%;
-    margin: 10px;
-    display: none;
     text-align: center;
     animation: screen_animation .4s;
 }
-/* toggle display */
-.user_login.active{
-    display: block;
-}
 
-.employee_login.active{
-    display: block;
+.authsection {
+    display: block; /* Default display for the active form */
 }
 
 .form-floating {
@@ -159,58 +116,40 @@ section {
     width: 100%;
 }
 
-.footer_line{
+.footer_line {
     margin: 20px 0;
 }
 
-.page_move_btn{
+.page_move_btn {
     color: rgba(0, 0, 255, 0.599);
     cursor: pointer;
 }
-.page_move_btn:hover{
+
+.page_move_btn:hover {
     color: blue;
-}
-
-/* signup */
-#sign_up{
-    height: 100%;
-    width: 100%;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-}
-
-.user_signup{
-    width: 70%;
-    text-align: center;
-    animation: screen_animation .4s;
 }
 
 /* animation frame */
 @keyframes screen_animation {
-    0%{
+    0% {
         transform: translateX(50px);
     }
 }
 
-
-
 /* responsive stuff */
-
-@media(max-width: 30rem){
-    .carousel_section{
+@media(max-width: 30rem) {
+    .carousel_section {
         display: none;
     }
-    #auth_section{
+    #auth_section {
         width: 100%;
     }
-    .auth_container
-    {
+    .auth_container {
         width: 100%;
         padding: 0;
         margin: 0;
     }
-    #Log_in .role_btn .btns{
-        width: 90px;
+    #auth_form {
+        width: 90%;
     }
 }
