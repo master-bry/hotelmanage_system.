@@ -26,7 +26,7 @@ class Auth extends Controller
     public function doLogin()
     {
         if ($this->request->getMethod() !== 'post') {
-            return redirect()->to(base_url('auth'));
+            return redirect()->to(base_url('/'));
         }
 
         $email = $this->request->getPost('Email');
@@ -44,9 +44,9 @@ class Auth extends Controller
         $user = $this->userModel->where('Email', $email)->first();
         if ($user && password_verify($password, $user['Password'])) {
             $this->session->set('usermail', $email);
-            $this->session->set('isStaff', $user['isStaff'] ?? 0);
-            $redirectUrl = ($user['isStaff'] ?? 0) ? base_url('admin') : base_url('/');
-            return redirect()->to($redirectUrl);
+            $isStaff = ($email === 'admin@skybird.com');
+            $this->session->set('isStaff', $isStaff);
+            return redirect()->to(base_url('home'));
         }
 
         $this->session->setFlashdata('error', 'Invalid email or password');
@@ -56,7 +56,7 @@ class Auth extends Controller
     public function signup()
     {
         if ($this->request->getMethod() !== 'post') {
-            return redirect()->to(base_url('auth'));
+            return redirect()->to(base_url('/'));
         }
 
         $rules = [
@@ -74,13 +74,11 @@ class Auth extends Controller
             'Username' => $this->request->getPost('Username'),
             'Email' => $this->request->getPost('Email'),
             'Password' => password_hash($this->request->getPost('Password'), PASSWORD_DEFAULT),
-            'isStaff' => 0, // Default to user (non-staff)
         ];
         if ($this->userModel->insert($data)) {
             $this->session->set('usermail', $data['Email']);
             $this->session->set('isStaff', 0);
-            $this->session->setFlashdata('success', 'Account created successfully. Welcome!');
-            return redirect()->to(base_url('/'));
+            return redirect()->to(base_url('home'));
         }
 
         $this->session->setFlashdata('error', 'Failed to create account');

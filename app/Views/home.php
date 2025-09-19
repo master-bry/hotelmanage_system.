@@ -29,19 +29,16 @@
             <li><a href="#firstsection">Home</a></li>
             <li><a href="#secondsection">Rooms</a></li>
             <li><a href="#thirdsection">Facilities</a></li>
-            <?php if (session()->has('usermail')): ?>
-                <li><a href="<?= base_url('logout') ?>">Logout (<?= session('usermail') ?>)</a></li>
-            <?php else: ?>
-                <li><a href="<?= base_url('auth') ?>">Login/Signup</a></li>
+            <?php if (session()->get('isStaff')): ?>
+                <li><a href="<?= base_url('admin') ?>">Admin Panel</a></li>
             <?php endif; ?>
+            <li><a href="<?= base_url('logout') ?>">Logout</a></li>
         </ul>
     </nav>
 
     <section id="firstsection">
         <h1>Welcome to SkyBird Hotel</h1>
-        <?php if (session()->has('usermail')): ?>
-            <p>Hello, <?= session('usermail') ?>! Your bookings are ready.</p>
-        <?php endif; ?>
+        <p>Hello, <?= session('usermail') ?>!</p>
     </section>
 
     <section id="secondsection">
@@ -130,55 +127,40 @@
         </div>
     </section>
 
-    <!-- Booking Form -->
     <div id="guestdetailpanel">
-        <form action="<?= base_url('book') ?>" method="POST">
-            <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-            <div class="head">
-                <h3>Book a Room</h3>
-                <i class="fa-solid fa-circle-xmark" onclick="closebox()"></i>
-            </div>
-            <div class="middle">
-                <div class="guestinfo">
-                    <h4>Guest Information</h4>
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="name" placeholder=" " required>
-                        <label for="name">Full Name</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="email" class="form-control" name="email" placeholder=" " required>
-                        <label for="email">Email</label>
-                    </div>
+        <div class="middle">
+            <form action="<?= base_url('book') ?>" method="POST">
+                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                <h2>Book a Room</h2>
+                <div class="form-floating">
+                    <input type="text" class="form-control" name="name" placeholder=" " required>
+                    <label for="name">Name</label>
                 </div>
-                <div class="roominfo">
-                    <h4>Room Information</h4>
-                    <div class="form-floating">
-                        <select class="form-control" name="room_type" required>
-                            <option value="">Select Room Type</option>
-                            <option value="Superior Room">Superior Room</option>
-                            <option value="Deluxe Room">Deluxe Room</option>
-                            <option value="Guest House">Guest House</option>
-                            <option value="Single Room">Single Room</option>
-                        </select>
-                        <label for="room_type">Room Type</label>
-                    </div>
-                    <div class="datesection">
-                        <div class="form-floating">
-                            <input type="date" class="form-control" name="check_in" placeholder=" " required>
-                            <label for="check_in">Check-In</label>
-                        </div>
-                        <div class="form-floating">
-                            <input type="date" class="form-control" name="check_out" placeholder=" " required>
-                            <label for="check_out">Check-Out</label>
-                        </div>
-                    </div>
+                <div class="form-floating">
+                    <input type="email" class="form-control" name="email" placeholder=" " required>
+                    <label for="email">Email</label>
                 </div>
-            </div>
-            <div class="footer">
+                <div class="form-floating">
+                    <select class="form-control" name="room_type" required>
+                        <option value="Superior Room">Superior Room</option>
+                        <option value="Deluxe Room">Deluxe Room</option>
+                        <option value="Guest Room">Guest Room</option>
+                        <option value="Single Room">Single Room</option>
+                    </select>
+                    <label for="room_type">Room Type</label>
+                </div>
+                <div class="form-floating">
+                    <input type="date" class="form-control" name="check_in" placeholder=" " required>
+                    <label for="check_in">Check-In Date</label>
+                </div>
+                <div class="form-floating">
+                    <input type="date" class="form-control" name="check_out" placeholder=" " required>
+                    <label for="check_out">Check-Out Date</label>
+                </div>
                 <button type="submit" class="btn btn-primary">Book Now</button>
                 <button type="button" class="btn btn-secondary" onclick="closebox()">Cancel</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <?php if (session()->has('error')): ?>
@@ -208,5 +190,6 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 </body>
 </html>

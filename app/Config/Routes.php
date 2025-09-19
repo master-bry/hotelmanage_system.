@@ -8,9 +8,9 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes = \Config\Services::routes();
 
-$routes->get('/', 'Home::index'); // Landing page (home.php)
+$routes->get('/', 'Auth::index'); // Default to login page (auth.php)
+$routes->get('home', 'Home::index'); // Home page after login
 $routes->post('book', 'Home::book'); // Booking form submission
-$routes->get('auth', 'Auth::index'); // Single login/signup page
 $routes->post('login', 'Auth::doLogin');
 $routes->post('signup', 'Auth::signup');
 $routes->get('logout', 'Auth::logout');
@@ -31,3 +31,5 @@ $routes->get('admin/roombookedit/(:num)', 'Admin::roombookedit/$1');
 $routes->post('admin/roombookupdate/(:num)', 'Admin::roombookupdate/$1');
 $routes->get('admin/staffdelete/(:num)', 'Admin::staffdelete/$1');
 $routes->post('admin/addstaff', 'Admin::addstaff');
+
+?>

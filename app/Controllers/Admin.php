@@ -14,7 +14,7 @@ class Admin extends BaseController
     protected $paymentModel;
     protected $staffModel;
 
-    public function __construct()
+   public function __construct()
     {
         $this->session = \Config\Services::session();
         $this->roomModel = new RoomModel();
@@ -23,10 +23,10 @@ class Admin extends BaseController
         $this->staffModel = new StaffModel();
     }
 
- public function index()
+    public function index()
     {
         if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
-            return redirect()->to(base_url('auth'));
+            return redirect()->to(base_url('/'));
         }
 
         $data = [
@@ -34,6 +34,7 @@ class Admin extends BaseController
         ];
         return view('admin/index', $data);
     }
+
 
     public function logout()
     {
