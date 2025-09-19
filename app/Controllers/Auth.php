@@ -60,7 +60,6 @@ class Auth extends Controller
         }
 
         $rules = [
-            'Username' => 'required|min_length[3]|max_length[50]',
             'Email' => 'required|valid_email|is_unique[signup.Email]',
             'Password' => 'required|min_length[6]',
             'CPassword' => 'required|matches[Password]',
@@ -71,7 +70,6 @@ class Auth extends Controller
         }
 
         $data = [
-            'Username' => $this->request->getPost('Username'),
             'Email' => $this->request->getPost('Email'),
             'Password' => password_hash($this->request->getPost('Password'), PASSWORD_DEFAULT),
         ];

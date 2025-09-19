@@ -27,22 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('loginpage called');
         const loginContent = `
             <h2>Log In</h2>
-            <?php if (session()->has('error')): ?>
-                <script>
-                    swal({
-                        title: '<?= session('error') ?>',
-                        icon: 'error',
-                    });
-                </script>
-            <?php endif; ?>
-            <?php if (session()->has('success')): ?>
-                <script>
-                    swal({
-                        title: '<?= session('success') ?>',
-                        icon: 'success',
-                    });
-                </script>
-            <?php endif; ?>
             <form action="<?= base_url('login') ?>" method="POST">
                 <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
                 <div class="form-floating">
