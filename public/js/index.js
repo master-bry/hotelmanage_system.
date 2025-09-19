@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
         signupBtn.addEventListener('click', function () {
             console.log('signuppage called');
             // Fetch updated signup form via AJAX to get fresh CSRF token
-            fetch('<?= base_url('auth/getSignupForm') ?>')
+            fetch('/auth/getSignupForm')
                 .then(response => response.text())
                 .then(html => {
                     authForm.innerHTML = html;
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function signuppage() {
         console.log('signuppage called');
         // Fetch updated signup form via AJAX to get fresh CSRF token
-        fetch('<?= base_url('auth/getSignupForm') ?>')
+        fetch('/auth/getSignupForm')
             .then(response => response.text())
             .then(html => {
                 authForm.innerHTML = html;

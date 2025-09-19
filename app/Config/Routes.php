@@ -13,6 +13,7 @@ $routes->get('home', 'Home::index'); // Home page after login
 $routes->post('book', 'Home::book'); // Booking form submission
 $routes->post('login', 'Auth::doLogin');
 $routes->post('signup', 'Auth::signup');
+$routes->get('auth/getSignupForm', 'Auth::getSignupForm'); // New route
 $routes->get('logout', 'Auth::logout');
 $routes->get('admin', 'Admin::index');
 $routes->get('admin/dashboard', 'Admin::dashboard');
