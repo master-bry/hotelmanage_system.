@@ -12,20 +12,23 @@ document.addEventListener('DOMContentLoaded', function () {
     if (signupBtn) {
         signupBtn.addEventListener('click', function () {
             console.log('signuppage called');
-            const signupContent = signupTemplate.content.cloneNode(true);
-            authForm.innerHTML = '';
-            authForm.appendChild(signupContent.querySelector('.authsection'));
-            // Update loginBtn reference after replacing content
-            const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
-            if (newLoginBtn) {
-                newLoginBtn.addEventListener('click', loginpage);
-            }
+            // Fetch updated signup form via AJAX to get fresh CSRF token
+            fetch('<?= base_url('auth/getSignupForm') ?>')
+                .then(response => response.text())
+                .then(html => {
+                    authForm.innerHTML = html;
+                    const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
+                    if (newLoginBtn) {
+                        newLoginBtn.addEventListener('click', loginpage);
+                    }
+                })
+                .catch(error => console.error('Error fetching signup form:', error));
         });
     }
 
     function loginpage() {
         console.log('loginpage called');
-        const loginContent = `
+        authForm.innerHTML = `
             <h2>Log In</h2>
             <form action="<?= base_url('login') ?>" method="POST">
                 <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
@@ -43,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </form>
         `;
-        authForm.innerHTML = loginContent;
         const newSignupBtn = document.querySelector('#auth_form .page_move_btn');
         if (newSignupBtn) {
             newSignupBtn.addEventListener('click', function () {
@@ -54,12 +56,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function signuppage() {
         console.log('signuppage called');
-        const signupContent = signupTemplate.content.cloneNode(true);
-        authForm.innerHTML = '';
-        authForm.appendChild(signupContent.querySelector('.authsection'));
-        const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
-        if (newLoginBtn) {
-            newLoginBtn.addEventListener('click', loginpage);
-        }
+        // Fetch updated signup form via AJAX to get fresh CSRF token
+        fetch('<?= base_url('auth/getSignupForm') ?>')
+            .then(response => response.text())
+            .then(html => {
+                authForm.innerHTML = html;
+                const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
+                if (newLoginBtn) {
+                    newLoginBtn.addEventListener('click', loginpage);
+                }
+            })
+            .catch(error => console.error('Error fetching signup form:', error));
     }
 });

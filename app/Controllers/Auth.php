@@ -96,6 +96,11 @@ class Auth extends Controller
         return redirect()->back()->withInput();
     }
 
+    public function getSignupForm()
+    {
+        return view('signup_form_partial');
+    }
+
     public function logout()
     {
         $this->session->destroy();
