@@ -44,6 +44,12 @@ $RECYCLE.BIN/
 .env
 .vagrant
 Vagrantfile
+*./Config/Email.php
+*./Config/Database.php
+*./Config/Encryption.php
+*./Config/Filters.php
+*./Config/ForeignCharacters.php
+*./Config/Logger.php
 
 #-------------------------
 # Temporary Files
