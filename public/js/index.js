@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const authForm = document.getElementById('auth_form');
-    const signupBtn = document.querySelector('#auth_form .page_move_btn');
-    const loginBtn = document.querySelector('#auth_form .page_move_btn'); // Will be updated dynamically
+    const signupBtn = document.querySelector('#auth_form .signup_btn');
+    const loginBtn = document.querySelector('#auth_form .login_btn'); // Will be updated dynamically
     const signupTemplate = document.getElementById('signup_template');
 
     console.log('index.js loaded');
@@ -10,11 +10,14 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Signup template:', signupTemplate);
 
     if (signupBtn) {
-        signupBtn.addEventListener('click', function () {
+        signupBtn.addEventListener('click', function (e) {
+            e.preventDefault();
             console.log('signuppage called');
-            // Fetch updated signup form via AJAX to get fresh CSRF token
-            fetch('/auth/getSignupForm')
-                .then(response => response.text())
+            fetch('/auth/getSignupForm') // Replace with the actual URL
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.text();
+                })
                 .then(html => {
                     authForm.innerHTML = html;
                     const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
@@ -48,7 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         const newSignupBtn = document.querySelector('#auth_form .page_move_btn');
         if (newSignupBtn) {
-            newSignupBtn.addEventListener('click', function () {
+            newSignupBtn.addEventListener('click', function (e) {
+                e.preventDefault();
                 signuppage();
             });
         }
@@ -56,9 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function signuppage() {
         console.log('signuppage called');
-        // Fetch updated signup form via AJAX to get fresh CSRF token
-        fetch('/auth/getSignupForm')
-            .then(response => response.text())
+        fetch('/auth/getSignupForm') // Replace with the actual URL
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.text();
+            })
             .then(html => {
                 authForm.innerHTML = html;
                 const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
