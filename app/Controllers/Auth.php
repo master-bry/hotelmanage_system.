@@ -3,16 +3,19 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\UserModel;
+use CodeIgniter\Email\Email;
 
 class Auth extends Controller
 {
     protected $session;
     protected $userModel;
+    protected $email;
 
     public function __construct()
     {
         $this->session = \Config\Services::session();
         $this->userModel = new UserModel();
+        $this->email = \Config\Services::email();
     }
 
     public function index()
@@ -76,6 +79,16 @@ class Auth extends Controller
         if ($this->userModel->insert($data)) {
             $this->session->set('usermail', $data['Email']);
             $this->session->set('isStaff', 0);
+
+            // Send confirmation email
+            $this->email->setFrom($this->email->fromEmail, $this->email->fromName);
+            $this->email->setTo($data['Email']);
+            $this->email->setSubject('Welcome to SkyBird Hotel');
+            $this->email->setMessage('Thank you for registering with SkyBird Hotel. Your account has been created successfully!');
+            if (!$this->email->send()) {
+                log_message('error', 'Email sending failed: ' . $this->email->printDebugger());
+            }
+
             return redirect()->to(base_url('home'));
         }
 
