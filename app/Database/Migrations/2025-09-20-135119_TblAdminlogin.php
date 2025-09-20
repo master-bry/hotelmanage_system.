@@ -24,6 +24,16 @@ public function up()
             'type' => 'VARCHAR',
             'constraint' => 255,
         ],
+        'verification_code' => [ // Add this field
+            'type' => 'VARCHAR',
+            'constraint' => 6,
+            'null' => true,
+        ],
+        'is_verified' => [ // Add this field
+            'type' => 'TINYINT',
+            'constraint' => 1,
+            'default' => 0,
+        ],
         'is_staff' => [
             'type' => 'TINYINT',
             'constraint' => 1,

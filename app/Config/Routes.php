@@ -12,7 +12,9 @@ $routes->get('logout', [Auth::class, 'logout']);
 // Home routes
 $routes->get('home', [Home::class, 'index']);
 $routes->post('book', [Home::class, 'book']);
-
+// Add this to your routes
+$routes->get('auth/verify', [Auth::class, 'verify']);
+$routes->post('auth/verify', [Auth::class, 'verify']);
 // Admin routes
 $routes->get('admin', [Admin::class, 'index']);
 $routes->get('admin/dashboard', [Admin::class, 'dashboard']);
