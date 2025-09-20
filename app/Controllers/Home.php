@@ -10,15 +10,10 @@ class Home extends Controller
     protected $roombookModel;
 
     public function __construct()
-{
-    $this->session = \Config\Services::session();
-    $this->roombookModel = new RoombookModel();
-    
-    // Check if user is logged in (non-staff)
-    if (!$this->session->has('usermail') || $this->session->get('isStaff')) {
-        return redirect()->to(base_url('/'));
+    {
+        $this->session = \Config\Services::session();
+        $this->roombookModel = new RoombookModel();
     }
-}
 
     public function index()
     {
@@ -34,41 +29,25 @@ class Home extends Controller
             return redirect()->to(base_url('/'));
         }
 
-        $rules = [
-            'name' => 'required|min_length[3]',
-            'email' => 'required|valid_email',
-            'room_type' => 'required|in_list[Superior Room,Deluxe Room,Guest House,Single Room]',
-            'check_in' => 'required|valid_date',
-            'check_out' => 'required|valid_date',
-        ];
-        if (!$this->validate($rules)) {
-            $this->session->setFlashdata('error', implode(', ', $this->validator->getErrors()));
-            return redirect()->back()->withInput();
-        }
-
-        // Calculate nodays
-        $cin = $this->request->getPost('check_in');
-        $cout = $this->request->getPost('check_out');
-        $nodays = (new \DateTime($cin))->diff(new \DateTime($cout))->days;
-
         $data = [
             'Name' => $this->request->getPost('name'),
             'Email' => $this->request->getPost('email'),
-            'Country' => '', // Optional, can be added later
-            'Phone' => '', // Optional
+            'Country' => '',
+            'Phone' => '',
             'RoomType' => $this->request->getPost('room_type'),
-            'Bed' => 'None', // Default, can be added to form later
-            'NoofRoom' => 1, // Default
-            'Meal' => 'Room only', // Default
-            'cin' => $cin,
-            'cout' => $cout,
-            'nodays' => $nodays,
+            'Bed' => 'None',
+            'NoofRoom' => 1,
+            'Meal' => 'Room only',
+            'cin' => $this->request->getPost('check_in'),
+            'cout' => $this->request->getPost('check_out'),
+            'nodays' => (new \DateTime($this->request->getPost('check_in')))->diff(new \DateTime($this->request->getPost('check_out')))->days,
             'stat' => 'NotConfirm',
         ];
-        if ($this->roombookModel->insert($data)) {
+
+        if ($this->roombookModel->save($data)) {
             $this->session->setFlashdata('success', 'Booking request submitted successfully');
         } else {
-            $this->session->setFlashdata('error', 'Failed to submit booking request');
+            $this->session->setFlashdata('error', implode(', ', $this->roombookModel->errors()));
         }
         return redirect()->to(base_url('home'));
     }
