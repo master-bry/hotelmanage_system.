@@ -5,7 +5,6 @@ use CodeIgniter\Controller;
 use App\Models\UserModel;
 use App\Models\RoombookModel;
 
-
 class Auth extends Controller
 {
     protected $session;
@@ -13,110 +12,13 @@ class Auth extends Controller
     protected $roombookModel;
 
     public function __construct()
-{
-    $this->session = \Config\Services::session();
-    $this->roombookModel = new RoombookModel();
-    
-    // Check if user is logged in and is NOT staff
-    if (!$this->session->has('usermail') || $this->session->get('isStaff') == 1) {
-        return redirect()->to(base_url('/'));
-    }
-}     
-     public function sendVerificationEmail($email, $verificationCode, $name)
-{
-    $emailService = \Config\Services::email();
-    
-    $emailService->setTo($email);
-    $emailService->setSubject('Email Verification - SKYBIRD HOTEL');
-    $emailService->setMessage(view('emails/verification', [
-        'name' => $name,
-        'verificationCode' => $verificationCode
-    ]));
-    
-    if ($emailService->send()) {
-        return true;
-    } else {
-        log_message('error', 'Email sending failed: ' . $emailService->printDebugger(['headers']));
-        return false;
-    }
-}
-
-// Update your signup method to include verification
-public function signup()
-{
-    if ($this->request->getMethod() !== 'post') {
-        return redirect()->to(base_url('/'));
-    }
-
-    $rules = [
-        'Email' => 'required|valid_email|is_unique[users.Email]',
-        'Password' => 'required|min_length[6]',
-        'CPassword' => 'required|matches[Password]',
-    ];
-    
-    if (!$this->validate($rules)) {
-        $this->session->setFlashdata('error', implode(', ', $this->validator->getErrors()));
-        return redirect()->back()->withInput();
-    }
-
-    // Generate verification code
-    $verificationCode = rand(100000, 999999);
-    
-    $data = [
-        'Email' => $this->request->getPost('Email'),
-        'Password' => password_hash($this->request->getPost('Password'), PASSWORD_BCRYPT),
-        'is_staff' => 0,
-        'verification_code' => $verificationCode, // Add this field to your users table
-        'is_verified' => 0, // Add this field to your users table
-        'created_at' => date('Y-m-d H:i:s'),
-        'updated_at' => date('Y-m-d H:i:s'),
-    ];
-    
-    if ($this->userModel->insert($data)) {
-        // Send verification email
-        $this->sendVerificationEmail($data['Email'], $verificationCode, explode('@', $data['Email'])[0]);
+    {
+        $this->session = \Config\Services::session();
+        $this->userModel = new UserModel(); // Add this
+        $this->roombookModel = new RoombookModel();
         
-        $this->session->set('temp_email', $data['Email']);
-        $this->session->setFlashdata('success', 'Account created! Please check your email for verification code.');
-        return redirect()->to(base_url('auth/verify'));
-    }
-
-    $this->session->setFlashdata('error', 'Failed to create account');
-    return redirect()->back()->withInput();
-}
-
-// Add verification method
-public function verify()
-{
-    if ($this->request->getMethod() === 'post') {
-        $code = $this->request->getPost('verification_code');
-        $email = $this->session->get('temp_email');
-        
-        $user = $this->userModel->where('Email', $email)
-                               ->where('verification_code', $code)
-                               ->first();
-        
-        if ($user) {
-            // Mark as verified
-            $this->userModel->update($user['id'], [
-                'is_verified' => 1,
-                'verification_code' => null
-            ]);
-            
-            $this->session->set('usermail', $user['Email']);
-            $this->session->set('user_id', $user['id']);
-            $this->session->set('isStaff', 0);
-            $this->session->remove('temp_email');
-            
-            $this->session->setFlashdata('success', 'Email verified successfully!');
-            return redirect()->to(base_url('home'));
-        } else {
-            $this->session->setFlashdata('error', 'Invalid verification code');
-        }
-    }
-    
-    $data = ['title' => 'Verify Email - SKYBIRD HOTEL'];
-    return view('auth/verify', $data);
+        // REMOVE the redirect logic from constructor
+        // Authentication checks should be in individual methods, not constructor
     }
 
     public function index()
@@ -202,7 +104,110 @@ public function verify()
         return redirect()->back()->withInput();
     }
 
+    public function signup()
+    {
+        // If already logged in, redirect to home
+        if ($this->session->has('usermail')) {
+            return redirect()->to(base_url('home'));
+        }
 
+        if ($this->request->getMethod() !== 'post') {
+            return redirect()->to(base_url('/'));
+        }
+
+        $rules = [
+            'Email' => 'required|valid_email|is_unique[users.Email]',
+            'Password' => 'required|min_length[6]',
+            'CPassword' => 'required|matches[Password]',
+        ];
+        
+        if (!$this->validate($rules)) {
+            $this->session->setFlashdata('error', implode(', ', $this->validator->getErrors()));
+            return redirect()->back()->withInput();
+        }
+
+        // Generate verification code
+        $verificationCode = rand(100000, 999999);
+        
+        $data = [
+            'Email' => $this->request->getPost('Email'),
+            'Password' => password_hash($this->request->getPost('Password'), PASSWORD_BCRYPT),
+            'is_staff' => 0,
+            'verification_code' => $verificationCode,
+            'is_verified' => 0,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+        
+        if ($this->userModel->insert($data)) {
+            // Send verification email
+            $this->sendVerificationEmail($data['Email'], $verificationCode, explode('@', $data['Email'])[0]);
+            
+            $this->session->set('temp_email', $data['Email']);
+            $this->session->setFlashdata('success', 'Account created! Please check your email for verification code.');
+            return redirect()->to(base_url('auth/verify'));
+        }
+
+        $this->session->setFlashdata('error', 'Failed to create account');
+        return redirect()->back()->withInput();
+    }
+
+    public function sendVerificationEmail($email, $verificationCode, $name)
+    {
+        $emailService = \Config\Services::email();
+        
+        $emailService->setTo($email);
+        $emailService->setSubject('Email Verification - SKYBIRD HOTEL');
+        $emailService->setMessage(view('emails/verification', [
+            'name' => $name,
+            'verificationCode' => $verificationCode
+        ]));
+        
+        if ($emailService->send()) {
+            return true;
+        } else {
+            log_message('error', 'Email sending failed: ' . $emailService->printDebugger(['headers']));
+            return false;
+        }
+    }
+
+    public function verify()
+    {
+        // If already logged in, redirect to home
+        if ($this->session->has('usermail')) {
+            return redirect()->to(base_url('home'));
+        }
+
+        if ($this->request->getMethod() === 'post') {
+            $code = $this->request->getPost('verification_code');
+            $email = $this->session->get('temp_email');
+            
+            $user = $this->userModel->where('Email', $email)
+                                   ->where('verification_code', $code)
+                                   ->first();
+            
+            if ($user) {
+                // Mark as verified
+                $this->userModel->update($user['id'], [
+                    'is_verified' => 1,
+                    'verification_code' => null
+                ]);
+                
+                $this->session->set('usermail', $user['Email']);
+                $this->session->set('user_id', $user['id']);
+                $this->session->set('isStaff', 0);
+                $this->session->remove('temp_email');
+                
+                $this->session->setFlashdata('success', 'Email verified successfully!');
+                return redirect()->to(base_url('home'));
+            } else {
+                $this->session->setFlashdata('error', 'Invalid verification code');
+            }
+        }
+        
+        $data = ['title' => 'Verify Email - SKYBIRD HOTEL'];
+        return view('auth/verify', $data);
+    }
 
     public function logout()
     {
