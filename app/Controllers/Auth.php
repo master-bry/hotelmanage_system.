@@ -37,19 +37,29 @@ class Auth extends Controller
 
         $rules = [
             'Email' => 'required|valid_email',
-            'Password' => 'required|min_length[6]',
+            'Password' => 'required|min_length[4]',
         ];
         if (!$this->validate($rules)) {
             $this->session->setFlashdata('error', 'Invalid email or password format');
             return redirect()->back()->withInput();
         }
 
+        // Check in signup table (regular users)
         $user = $this->userModel->where('Email', $email)->first();
-        if ($user && password_verify($password, $user['Password'])) {
+        if ($user && $password === $user['Password']) { // Simple comparison for existing data
             $this->session->set('usermail', $email);
-            $this->session->set('user_id', $user['id']);
-            $this->session->set('isStaff', $user['is_staff']);
+            $this->session->set('user_id', $user['UserID']);
+            $this->session->set('isStaff', 0);
             return redirect()->to(base_url('home'));
+        }
+
+        // Check in emp_login table (staff/admin)
+        $staff = $this->userModel->checkStaffLogin($email, $password);
+        if ($staff) {
+            $this->session->set('usermail', $email);
+            $this->session->set('user_id', $staff['empid']);
+            $this->session->set('isStaff', 1);
+            return redirect()->to(base_url('admin'));
         }
 
         $this->session->setFlashdata('error', 'Invalid email or password');
@@ -63,8 +73,8 @@ class Auth extends Controller
         }
 
         $rules = [
-            'Email' => 'required|valid_email|is_unique[users.Email]',
-            'Password' => 'required|min_length[6]',
+            'Email' => 'required|valid_email|is_unique[signup.Email]',
+            'Password' => 'required|min_length[4]',
             'CPassword' => 'required|matches[Password]',
         ];
         if (!$this->validate($rules)) {
@@ -74,23 +84,14 @@ class Auth extends Controller
 
         $data = [
             'Email' => $this->request->getPost('Email'),
-            'Password' => password_hash($this->request->getPost('Password'), PASSWORD_DEFAULT),
-            'is_staff' => 0, // Regular user by default
+            'Password' => $this->request->getPost('Password'), // Store plain text for compatibility
+            'Username' => explode('@', $this->request->getPost('Email'))[0], // Generate username from email
         ];
         
-        if ($this->userModel->insert($data)) {
+        if ($this->userModel->insertSignup($data)) {
             $this->session->set('usermail', $data['Email']);
             $this->session->set('user_id', $this->userModel->getInsertID());
             $this->session->set('isStaff', 0);
-
-            // Send confirmation email
-            $this->email->setFrom($this->email->fromEmail, $this->email->fromName);
-            $this->email->setTo($data['Email']);
-            $this->email->setSubject('Welcome to SkyBird Hotel');
-            $this->email->setMessage('Thank you for registering with SkyBird Hotel. Your account has been created successfully!');
-            if (!$this->email->send()) {
-                log_message('error', 'Email sending failed: ' . $this->email->printDebugger());
-            }
 
             return redirect()->to(base_url('home'));
         }
