@@ -1,3 +1,10 @@
+
+<?php
+// Check if user is logged in and is staff
+if (!session()->has('usermail') || !session()->get('isStaff')) {
+    return redirect()->to(base_url('/'));
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

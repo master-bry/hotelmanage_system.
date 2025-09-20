@@ -36,4 +36,14 @@ class UserModel extends Model
     {
         return $this->db->insertID();
     }
+    // In UserModel - for production use
+public function hashPassword($password)
+{
+    return password_hash($password, PASSWORD_DEFAULT);
+}
+
+public function verifyPassword($password, $hashedPassword)
+{
+    return password_verify($password, $hashedPassword);
+}
 }

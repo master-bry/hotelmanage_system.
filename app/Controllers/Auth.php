@@ -3,27 +3,61 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\UserModel;
-use CodeIgniter\Email\Email;
 
 class Auth extends Controller
 {
     protected $session;
     protected $userModel;
-    protected $email;
 
     public function __construct()
     {
         $this->session = \Config\Services::session();
         $this->userModel = new UserModel();
-        $this->email = \Config\Services::email();
     }
 
     public function index()
     {
+        // If already logged in, redirect appropriately
+        if ($this->session->has('usermail')) {
+            if ($this->session->get('isStaff')) {
+                return redirect()->to(base_url('admin'));
+            } else {
+                return redirect()->to(base_url('home'));
+            }
+        }
+
         $data = [
             'title' => 'SKY Hotel - Login/Signup',
         ];
         return view('auth', $data);
+    }
+
+    public function getSignupForm()
+    {
+        $html = '
+            <h2>Sign Up</h2>
+            <form action="' . base_url('auth/signup') . '" method="POST">
+                <input type="hidden" name="' . csrf_token() . '" value="' . csrf_hash() . '">
+                <div class="form-floating">
+                    <input type="email" class="form-control" name="Email" placeholder=" " required>
+                    <label for="Email">Email</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="Password" placeholder=" " required>
+                    <label for="Password">Password</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="CPassword" placeholder=" " required>
+                    <label for="CPassword">Confirm Password</label>
+                </div>
+                <button type="submit" name="signup_submit" class="auth_btn">Sign Up</button>
+                <div class="footer_line">
+                    <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
+                </div>
+            </form>
+        ';
+        
+        return $this->response->setBody($html);
     }
 
     public function doLogin()
@@ -37,29 +71,27 @@ class Auth extends Controller
 
         $rules = [
             'Email' => 'required|valid_email',
-            'Password' => 'required|min_length[4]',
+            'Password' => 'required|min_length[6]',
         ];
+        
         if (!$this->validate($rules)) {
             $this->session->setFlashdata('error', 'Invalid email or password format');
             return redirect()->back()->withInput();
         }
 
-        // Check in signup table (regular users)
-        $user = $this->userModel->where('Email', $email)->first();
-        if ($user && $password === $user['Password']) { // Simple comparison for existing data
-            $this->session->set('usermail', $email);
-            $this->session->set('user_id', $user['UserID']);
-            $this->session->set('isStaff', 0);
-            return redirect()->to(base_url('home'));
-        }
-
-        // Check in emp_login table (staff/admin)
-        $staff = $this->userModel->checkStaffLogin($email, $password);
-        if ($staff) {
-            $this->session->set('usermail', $email);
-            $this->session->set('user_id', $staff['empid']);
-            $this->session->set('isStaff', 1);
-            return redirect()->to(base_url('admin'));
+        // Check login using the new users table
+        $user = $this->userModel->checkLogin($email, $password);
+        
+        if ($user) {
+            $this->session->set('usermail', $user['Email']);
+            $this->session->set('user_id', $user['id']);
+            $this->session->set('isStaff', $user['is_staff']);
+            
+            if ($user['is_staff'] == 1) {
+                return redirect()->to(base_url('admin'));
+            } else {
+                return redirect()->to(base_url('home'));
+            }
         }
 
         $this->session->setFlashdata('error', 'Invalid email or password');
@@ -73,10 +105,11 @@ class Auth extends Controller
         }
 
         $rules = [
-            'Email' => 'required|valid_email|is_unique[signup.Email]',
-            'Password' => 'required|min_length[4]',
+            'Email' => 'required|valid_email|is_unique[users.Email]',
+            'Password' => 'required|min_length[6]',
             'CPassword' => 'required|matches[Password]',
         ];
+        
         if (!$this->validate($rules)) {
             $this->session->setFlashdata('error', implode(', ', $this->validator->getErrors()));
             return redirect()->back()->withInput();
@@ -84,15 +117,18 @@ class Auth extends Controller
 
         $data = [
             'Email' => $this->request->getPost('Email'),
-            'Password' => $this->request->getPost('Password'), // Store plain text for compatibility
-            'Username' => explode('@', $this->request->getPost('Email'))[0], // Generate username from email
+            'Password' => password_hash($this->request->getPost('Password'), PASSWORD_BCRYPT),
+            'is_staff' => 0, // Regular user
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
         
-        if ($this->userModel->insertSignup($data)) {
+        if ($this->userModel->insert($data)) {
             $this->session->set('usermail', $data['Email']);
             $this->session->set('user_id', $this->userModel->getInsertID());
             $this->session->set('isStaff', 0);
-
+            
+            $this->session->setFlashdata('success', 'Account created successfully!');
             return redirect()->to(base_url('home'));
         }
 

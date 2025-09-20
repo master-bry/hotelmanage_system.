@@ -15,13 +15,18 @@ class Admin extends BaseController
     protected $staffModel;
 
     public function __construct()
-    {
-        $this->session = \Config\Services::session();
-        $this->roomModel = new RoomModel();
-        $this->roombookModel = new RoombookModel();
-        $this->paymentModel = new PaymentModel();
-        $this->staffModel = new StaffModel();
+{
+    $this->session = \Config\Services::session();
+    $this->roomModel = new RoomModel();
+    $this->roombookModel = new RoombookModel();
+    $this->paymentModel = new PaymentModel();
+    $this->staffModel = new StaffModel();
+    
+    // Check if user is logged in and is staff
+    if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+        return redirect()->to(base_url('/'));
     }
+}
 
     public function index()
     {

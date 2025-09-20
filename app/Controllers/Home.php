@@ -10,15 +10,15 @@ class Home extends Controller
     protected $roombookModel;
 
     public function __construct()
-    {
-        $this->session = \Config\Services::session();
-        $this->roombookModel = new RoombookModel();
-        
-        // Check if user is logged in
-        if (!$this->session->has('usermail')) {
-            return redirect()->to(base_url('/'));
-        }
+{
+    $this->session = \Config\Services::session();
+    $this->roombookModel = new RoombookModel();
+    
+    // Check if user is logged in (non-staff)
+    if (!$this->session->has('usermail') || $this->session->get('isStaff')) {
+        return redirect()->to(base_url('/'));
     }
+}
 
     public function index()
     {

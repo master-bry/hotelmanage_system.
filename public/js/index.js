@@ -1,19 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     const authForm = document.getElementById('auth_form');
     const signupBtn = document.querySelector('#auth_form .signup_btn');
-    const loginBtn = document.querySelector('#auth_form .login_btn'); // Will be updated dynamically
-    const signupTemplate = document.getElementById('signup_template');
+    const loginBtn = document.querySelector('#auth_form .login_btn');
 
     console.log('index.js loaded');
-    console.log('Auth form element:', authForm);
-    console.log('Signup button:', signupBtn);
-    console.log('Signup template:', signupTemplate);
 
     if (signupBtn) {
         signupBtn.addEventListener('click', function (e) {
             e.preventDefault();
             console.log('signuppage called');
-            fetch('/auth/getSignupForm') // Replace with the actual URL
+            fetch('/auth/getSignupForm') // Fixed route
                 .then(response => {
                     console.log('Response status:', response.status);
                     return response.text();
@@ -33,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('loginpage called');
         authForm.innerHTML = `
             <h2>Log In</h2>
-            <form action="<?= base_url('login') ?>" method="POST">
+            <form action="<?= base_url('auth/doLogin') ?>" method="POST"> <!-- Fixed action -->
                 <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
                 <div class="form-floating">
                     <input type="email" class="form-control" name="Email" placeholder=" " required>
@@ -45,26 +41,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <button type="submit" name="login_submit" class="auth_btn">Log In</button>
                 <div class="footer_line">
-                    <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
+                    <h6>Don't have an account? <span class="signup_btn">Sign Up</span></h6>
                 </div>
             </form>
         `;
-        const newSignupBtn = document.querySelector('#auth_form .page_move_btn');
+        const newSignupBtn = document.querySelector('#auth_form .signup_btn');
         if (newSignupBtn) {
-            newSignupBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                signuppage();
-            });
+            newSignupBtn.addEventListener('click', signuppage);
         }
     }
 
     function signuppage() {
         console.log('signuppage called');
-        fetch('/auth/getSignupForm') // Replace with the actual URL
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.text();
-            })
+        fetch('/auth/getSignupForm')
+            .then(response => response.text())
             .then(html => {
                 authForm.innerHTML = html;
                 const newLoginBtn = document.querySelector('#auth_form .page_move_btn');
