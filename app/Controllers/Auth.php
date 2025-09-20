@@ -3,17 +3,25 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\UserModel;
+use App\Models\RoombookModel;
+
 
 class Auth extends Controller
 {
     protected $session;
     protected $userModel;
+    protected $roombookModel;
 
     public function __construct()
-    {
-        $this->session = \Config\Services::session();
-        $this->userModel = new UserModel();
+{
+    $this->session = \Config\Services::session();
+    $this->roombookModel = new RoombookModel();
+    
+    // Check if user is logged in and is NOT staff
+    if (!$this->session->has('usermail') || $this->session->get('isStaff') == 1) {
+        return redirect()->to(base_url('/'));
     }
+}
 
     public function index()
     {

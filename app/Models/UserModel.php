@@ -5,45 +5,32 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-    protected $table = 'signup';
-    protected $primaryKey = 'UserID'; // Changed from 'id' to 'UserID'
-    protected $allowedFields = ['Username', 'Email', 'Password'];
+    protected $table = 'users';
+    protected $primaryKey = 'id';
+    protected $allowedFields = ['Email', 'Password', 'is_staff', 'created_at', 'updated_at'];
     protected $useTimestamps = false;
-    protected $validationRules = [
-        'Email' => 'required|valid_email|is_unique[signup.Email,UserID,{UserID}]',
-    ];
     
-    // Check staff login from emp_login table
-    public function checkStaffLogin($email, $password)
+    // Check user login (both regular users and staff)
+    public function checkLogin($email, $password)
     {
-        $staff = $this->db->table('emp_login')
-            ->where('Emp_Email', $email)
-            ->where('Emp_Password', $password)
-            ->get()
-            ->getRowArray();
-            
-        return $staff;
+        $user = $this->where('Email', $email)->first();
+        
+        if ($user && password_verify($password, $user['Password'])) {
+            return $user;
+        }
+        
+        return false;
     }
     
-    // Insert into signup table
-    public function insertSignup($data)
+    // Get user by email
+    public function getByEmail($email)
     {
-        return $this->db->table('signup')->insert($data);
+        return $this->where('Email', $email)->first();
     }
     
-    // Get inserted ID
-    public function getInsertID()
+    // Check if email exists
+    public function emailExists($email)
     {
-        return $this->db->insertID();
+        return $this->where('Email', $email)->countAllResults() > 0;
     }
-    // In UserModel - for production use
-public function hashPassword($password)
-{
-    return password_hash($password, PASSWORD_DEFAULT);
-}
-
-public function verifyPassword($password, $hashedPassword)
-{
-    return password_verify($password, $hashedPassword);
-}
 }

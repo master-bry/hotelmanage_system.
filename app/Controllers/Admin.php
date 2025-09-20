@@ -14,7 +14,7 @@ class Admin extends BaseController
     protected $paymentModel;
     protected $staffModel;
 
-    public function __construct()
+public function __construct()
 {
     $this->session = \Config\Services::session();
     $this->roomModel = new RoomModel();
@@ -22,8 +22,8 @@ class Admin extends BaseController
     $this->paymentModel = new PaymentModel();
     $this->staffModel = new StaffModel();
     
-    // Check if user is logged in and is staff
-    if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+    // Check if user is logged in and IS staff
+    if (!$this->session->has('usermail') || $this->session->get('isStaff') != 1) {
         return redirect()->to(base_url('/'));
     }
 }

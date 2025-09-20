@@ -120,15 +120,14 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-public array $supportedLocales = ['en'];
-public $sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler';
-public $sessionCookieName = 'ci_session';
-public $sessionExpiration = 7200; // 2 hours
-public $sessionSavePath = WRITEPATH . 'sessions';
-public $sessionMatchIP = false;
-public $sessionTimeToUpdate = 300; // Regenerate session ID every 5 minutes
-public $sessionRegenerateDestroy = false;
-
+            public array $supportedLocales = ['en'];
+            public $sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler';
+            public $sessionCookieName = 'ci_session';
+            public $sessionExpiration = 7200;
+            public $sessionSavePath = WRITEPATH . 'session';
+            public $sessionMatchIP = false;
+             public $sessionTimeToUpdate = 300;
+             public $sessionRegenerateDestroy = false;
     /**
      * --------------------------------------------------------------------------
      * Application Timezone
