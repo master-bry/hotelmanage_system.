@@ -1,9 +1,3 @@
-<?php
-// Check if user is logged in and is staff
-if (!session()->has('usermail') || !session()->get('isStaff')) {
-    return redirect()->to(base_url('/'));
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,11 +9,12 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <link rel="stylesheet" href="<?= base_url('css/roombook.css') ?>">
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
 </head>
 <body>
     <div id="guestdetailpanel">
         <form action="<?= base_url('admin/addroombook') ?>" method="POST" class="guestdetailpanelform">
+            <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
             <div class="head">
                 <h3>RESERVATION</h3>
                 <i class="fa-solid fa-circle-xmark" onclick="adduserclose()"></i>
@@ -31,57 +26,51 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
                     <input type="email" name="Email" placeholder="Enter Email" required>
                     <select name="Country" class="form-control">
                         <option value selected></option>
-                        <?php
-                        $countries = ["Afghanistan", "Albania", "Algeria", /* ... add all countries ... */];
-                        foreach ($countries as $country) {
-                            echo "<option value='$country'>$country</option>";
-                        }
-                        ?>
+                        <option value="Tanzania">Tanzania</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Uganda">Uganda</option>
                     </select>
-                    <input type="text" name="Phone" placeholder="Enter Phone" required>
-                </div>
-                <div class="roominfo">
-                    <h4>Room information</h4>
-                    <select name="troom" class="form-control">
+                    <input type="text" name="Phone" placeholder="Enter Phone">
+                    <select name="RoomType" class="form-control">
                         <option value selected></option>
-                        <option value="Superior Room">SUPERIOR ROOM</option>
-                        <option value="Deluxe Room">DELUXE ROOM</option>
-                        <option value="Guest House">GUEST HOUSE</option>
-                        <option value="Single Room">SINGLE ROOM</option>
+                        <option value="Superior Room">Superior Room</option>
+                        <option value="Deluxe Room">Deluxe Room</option>
+                        <option value="Guest House">Guest House</option>
+                        <option value="Single Room">Single Room</option>
                     </select>
-                    <select name="bed" class="form-control">
+                    <select name="Bed" class="form-control">
                         <option value selected></option>
                         <option value="Single">Single</option>
                         <option value="Double">Double</option>
-                        <option value="Triple">Triple</option>
-                        <option value="Quad">Quad</option>
-                        <option value="None">None</option>
                     </select>
-                    <select name="nroom" class="form-control">
+                    <select name="NoofRoom" class="form-control">
                         <option value selected></option>
                         <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
                     </select>
-                    <select name="meal" class="form-control">
+                    <select name="Meal" class="form-control">
                         <option value selected></option>
                         <option value="Room only">Room only</option>
                         <option value="Breakfast">Breakfast</option>
                         <option value="Half Board">Half Board</option>
                         <option value="Full Board">Full Board</option>
                     </select>
-                    <input type="date" name="cin" placeholder="Check-In">
-                    <input type="date" name="cout" placeholder="Check-Out">
+                    <div class="datesection">
+                        <span>
+                            <label for="cin">Check-In</label>
+                            <input name="cin" type="date" required>
+                        </span>
+                        <span>
+                            <label for="cout">Check-Out</label>
+                            <input name="cout" type="date" required>
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="footer">
-                <button type="submit" class="btn btn-primary" name="addroombook">Submit</button>
+                <button class="btn btn-success" name="guestdetailadd">Add</button>
             </div>
-        </form>
-    </div>
-    <div class="searchsection">
-        <input type="text" name="search_bar" id="search_bar" placeholder="search..." onkeyup="searchFun()">
-        <button class="adduser" id="adduser" onclick="adduseropen()"><i class="fa-solid fa-bookmark"></i> Add</button>
-        <form action="<?= base_url('admin/exportdata') ?>" method="post">
-            <button class="exportexcel" id="exportexcel" name="exportexcel" type="submit"><i class="fa-solid fa-file-arrow-down"></i></button>
         </form>
     </div>
     <div class="roombooktable table-responsive-xl">
@@ -97,41 +86,64 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
                     <th scope="col">Type of Bed</th>
                     <th scope="col">No of Room</th>
                     <th scope="col">Meal</th>
-                    <th scope="col">Check-In</th>
-                    <th scope="col">Check-Out</th>
-                    <th scope="col">No of Day</th>
+                    <th scope="col">Check In</th>
+                    <th scope="col">Check Out</th>
                     <th scope="col">Status</th>
-                    <th scope="col" class="action">Action</th>
+                    <th scope="col">Days</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($roombookData as $res): ?>
-                <tr>
-                    <td><?= $res['id'] ?></td>
-                    <td><?= $res['Name'] ?></td>
-                    <td><?= $res['Email'] ?></td>
-                    <td><?= $res['Country'] ?></td>
-                    <td><?= $res['Phone'] ?></td>
-                    <td><?= $res['RoomType'] ?></td>
-                    <td><?= $res['Bed'] ?></td>
-                    <td><?= $res['NoofRoom'] ?></td>
-                    <td><?= $res['Meal'] ?></td>
-                    <td><?= $res['cin'] ?></td>
-                    <td><?= $res['cout'] ?></td>
-                    <td><?= $res['nodays'] ?></td>
-                    <td><?= $res['stat'] ?></td>
-                    <td class="action">
-                        <?php if ($res['stat'] != "Confirm"): ?>
-                            <a href="<?= base_url('admin/roomconfirm/' . $res['id']) ?>"><button class="btn btn-success">Confirm</button></a>
-                            <a href="<?= base_url('admin/roombookdelete/' . $res['id']) ?>"><button class="btn btn-danger">Delete</button></a>
-                        <?php endif; ?>
-                        <a href="<?= base_url('admin/roombookedit/' . $res['id']) ?>"><button class="btn btn-primary">Edit</button></a>
-                    </td>
-                </tr>
+                <?php foreach ($roombookData as $row): ?>
+                    <tr>
+                        <td><?= esc($row['id']) ?></td>
+                        <td><?= esc($row['Name']) ?></td>
+                        <td><?= esc($row['Email']) ?></td>
+                        <td><?= esc($row['Country']) ?></td>
+                        <td><?= esc($row['Phone']) ?></td>
+                        <td><?= esc($row['RoomType']) ?></td>
+                        <td><?= esc($row['Bed']) ?></td>
+                        <td><?= esc($row['NoofRoom']) ?></td>
+                        <td><?= esc($row['Meal']) ?></td>
+                        <td><?= esc($row['cin']) ?></td>
+                        <td><?= esc($row['cout']) ?></td>
+                        <td>
+                            <?php if ($row['stat'] == "Confirm"): ?>
+                                <p class="btn btn-success btn-sm">Confirm</p>
+                            <?php else: ?>
+                                <a href="<?= base_url('admin/roomconfirm/' . $row['id']) ?>"><button class="btn btn-warning btn-sm">Not Confirm</button></a>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= esc($row['nodays']) ?></td>
+                        <td>
+                            <a href="<?= base_url('admin/roombookedit/' . $row['id']) ?>"><button class="btn btn-primary btn-sm">Edit</button></a>
+                            <a href="<?= base_url('admin/roombookdelete/' . $row['id']) ?>"><button class="btn btn-danger btn-sm">Delete</button></a>
+                        </td>
+                    </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-    <script src="<?= base_url('js/roombook.js') ?>"></script>
+    <?php if (session()->has('success')): ?>
+        <script>
+            swal({
+                title: '<?= esc(session('success')) ?>',
+                icon: 'success',
+            });
+        </script>
+    <?php endif; ?>
+    <?php if (session()->has('error')): ?>
+        <script>
+            swal({
+                title: '<?= esc(session('error')) ?>',
+                icon: 'error',
+            });
+        </script>
+    <?php endif; ?>
+    <script>
+        function adduserclose() {
+            document.getElementById('guestdetailpanel').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

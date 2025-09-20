@@ -255,6 +255,32 @@ class Admin extends BaseController
         $this->session->setFlashdata('success', 'Staff deleted successfully');
         return redirect()->to(base_url('admin/staff'));
     }
+    public function addroombook()
+{
+    if ($this->request->getMethod() === 'post') {
+        $data = [
+            'Name' => $this->request->getPost('Name'),
+            'Email' => $this->request->getPost('Email'),
+            'Country' => $this->request->getPost('Country'),
+            'Phone' => $this->request->getPost('Phone'),
+            'RoomType' => $this->request->getPost('RoomType'),
+            'Bed' => $this->request->getPost('Bed'),
+            'NoofRoom' => $this->request->getPost('NoofRoom'),
+            'Meal' => $this->request->getPost('Meal'),
+            'cin' => $this->request->getPost('cin'),
+            'cout' => $this->request->getPost('cout'),
+            'nodays' => $this->calculateNoOfDays($this->request->getPost('cin'), $this->request->getPost('cout')),
+            'stat' => 'NotConfirm',
+        ];
+
+        if ($this->roombookModel->save($data)) {
+            $this->session->setFlashdata('success', 'Booking added successfully');
+        } else {
+            $this->session->setFlashdata('error', implode(', ', $this->roombookModel->errors()));
+        }
+    }
+    return redirect()->to(base_url('admin/roombook'));
+}
 
     public function addstaff()
     {

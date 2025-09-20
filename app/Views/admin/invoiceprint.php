@@ -1,14 +1,8 @@
-<?php
-// Check if user is logged in and is staff
-if (!session()->has('usermail') || !session()->get('isStaff')) {
-    return redirect()->to(base_url('/'));
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
     <link rel="stylesheet" href="<?= base_url('css/style.css') ?>">
     <style>
         * { border: 0; box-sizing: content-box; color: inherit; font-family: inherit; font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; list-style: none; margin: 0; padding: 0; text-decoration: none; vertical-align: top; }
@@ -22,53 +16,30 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
         td { border-color: #DDD; }
         html { font: 16px/1 'Open Sans', sans-serif; overflow: auto; padding: 0.5in; background: #999; cursor: default; }
         body { box-sizing: border-box; height: 11in; margin: 0 auto; overflow: hidden; padding: 0.5in; width: 8.5in; background: #FFF; border-radius: 1px; box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5); }
-        header { margin: 0 0 3em; }
-        header:after { clear: both; content: ""; display: table; }
-        header h1 { background: #000; border-radius: 0.25em; color: #FFF; margin: 0 0 1em; padding: 0.5em 0; }
-        header address { float: left; font-size: 75%; font-style: normal; line-height: 1.25; margin: 0 1em 1em 0; }
-        header address p { margin: 0 0 0.25em; }
-        header span, header img { display: block; float: right; }
-        header span { margin: 0 0 1em 1em; max-height: 25%; max-width: 60%; position: relative; }
-        header img { max-height: 100%; max-width: 100%; }
-        article, article address, table.meta, table.inventory { margin: 0 0 3em; }
-        article:after { clear: both; content: ""; display: table; }
-        article h1 { clip: rect(0 0 0 0); position: absolute; }
-        article address { float: left; font-size: 125%; font-weight: bold; }
-        table.meta, table.balance { float: right; width: 36%; }
-        table.meta:after, table.balance:after { clear: both; content: ""; display: table; }
-        table.meta th { width: 40%; }
-        table.balance th, table.balance td { width: 50%; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Invoice</h1>
-        <address>
-            <p>SkyBird HOTEL,</p>
-            <p>(+255) 746212372</p>
-        </address>
-        <span><img alt="" src="<?= base_url('image/logo.jpg') ?>"></span>
-    </header>
     <article>
-        <h1>Recipient</h1>
-        <address>
-            <p><?= $booking['Name'] ?> <br></p>
-        </address>
+        <h1>Invoice</h1>
         <table class="meta">
             <tr>
                 <th><span>Invoice #</span></th>
-                <td><span><?= $booking['id'] ?></span></td>
+                <td><span><?= esc($booking['id']) ?></span></td>
             </tr>
             <tr>
                 <th><span>Date</span></th>
-                <td><span><?= $booking['cout'] ?></span></td>
+                <td><span><?= date('Y-m-d') ?></span></td>
+            </tr>
+            <tr>
+                <th><span>Name</span></th>
+                <td><span><?= esc($booking['Name']) ?></span></td>
             </tr>
         </table>
         <table class="inventory">
             <thead>
                 <tr>
                     <th><span>Item</span></th>
-                    <th><span>No of Days</span></th>
+                    <th><span>Days</span></th>
                     <th><span>Rate</span></th>
                     <th><span>Quantity</span></th>
                     <th><span>Price</span></th>
@@ -76,32 +47,32 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
             </thead>
             <tbody>
                 <tr>
-                    <td><span><?= $booking['RoomType'] ?></span></td>
-                    <td><span><?= $booking['noofdays'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $type_of_room ?></span></td>
-                    <td><span><?= $booking['NoofRoom'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $ttot ?></span></td>
+                    <td><span><?= esc($booking['RoomType']) ?> Room</span></td>
+                    <td><span><?= esc($booking['nodays']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($type_of_room) ?></span></td>
+                    <td><span><?= esc($booking['NoofRoom']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($rtot) ?></span></td>
                 </tr>
                 <tr>
-                    <td><span><?= $booking['Bed'] ?> Bed</span></td>
-                    <td><span><?= $booking['noofdays'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $type_of_bed ?></span></td>
-                    <td><span><?= $booking['NoofRoom'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $btot ?></span></td>
+                    <td><span><?= esc($booking['Bed']) ?> Bed</span></td>
+                    <td><span><?= esc($booking['nodays']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($type_of_bed) ?></span></td>
+                    <td><span><?= esc($booking['NoofRoom']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($btot) ?></span></td>
                 </tr>
                 <tr>
-                    <td><span><?= $booking['meal'] ?></span></td>
-                    <td><span><?= $booking['noofdays'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $type_of_meal ?></span></td>
-                    <td><span><?= $booking['NoofRoom'] ?></span></td>
-                    <td><span data-prefix>Tsh</span><span><?= $mepr ?></span></td>
+                    <td><span><?= esc($booking['meal']) ?></span></td>
+                    <td><span><?= esc($booking['nodays']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($type_of_meal) ?></span></td>
+                    <td><span><?= esc($booking['NoofRoom']) ?></span></td>
+                    <td><span data-prefix>Tsh</span><span><?= esc($mepr) ?></span></td>
                 </tr>
             </tbody>
         </table>
         <table class="balance">
             <tr>
                 <th><span>Total</span></th>
-                <td><span data-prefix>Tsh</span><span><?= $fintot ?></span></td>
+                <td><span data-prefix>Tsh</span><span><?= esc($fintot) ?></span></td>
             </tr>
             <tr>
                 <th><span>Amount Paid</span></th>
@@ -109,7 +80,7 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
             </tr>
             <tr>
                 <th><span>Balance Due</span></th>
-                <td><span data-prefix>Tsh</span><span><?= $fintot ?></span></td>
+                <td><span data-prefix>Tsh</span><span><?= esc($fintot) ?></span></td>
             </tr>
         </table>
     </article>

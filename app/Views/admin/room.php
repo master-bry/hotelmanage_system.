@@ -1,9 +1,3 @@
-<?php
-// Check if user is logged in and is staff
-if (!session()->has('usermail') || !session()->get('isStaff')) {
-    return redirect()->to(base_url('/'));
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,13 +8,14 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="<?= base_url('css/room.css') ?>">
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
 </head>
 <body>
     <div class="addroomsection">
         <form action="<?= base_url('admin/addroom') ?>" method="POST">
+            <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
             <label for="troom">Type of Room: </label>
-            <select name="troom" class="form-control">
+            <select name="troom" class="form-control" required>
                 <option value selected></option>
                 <option value="Superior Room">SUPERIOR ROOM</option>
                 <option value="Deluxe Room">DELUXE ROOM</option>
@@ -28,7 +23,7 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
                 <option value="Single Room">SINGLE ROOM</option>
             </select>
             <label for="bed">Type of Bed :</label>
-            <select name="bed" class="form-control">
+            <select name="bed" class="form-control" required>
                 <option value selected></option>
                 <option value="Single">Single</option>
                 <option value="Double">Double</option>
@@ -50,15 +45,31 @@ if (!session()->has('usermail') || !session()->get('isStaff')) {
                     $class = 'roomboxsingle';
                 }
             ?>
-            <div class="roombox <?= $class ?>">
+            <div class="roombox <?= esc($class) ?>">
                 <div class="text-center no-boder">
                     <i class="fa-solid fa-bed fa-4x mb-2"></i>
-                    <h3><?= $row['type'] ?></h3>
-                    <div class="mb-1"><?= $row['bedding'] ?></div>
+                    <h3><?= esc($row['type']) ?></h3>
+                    <div class="mb-1"><?= esc($row['bedding']) ?></div>
                     <a href="<?= base_url('admin/roomdelete/' . $row['id']) ?>"><button class="btn btn-danger">Delete</button></a>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
+    <?php if (session()->has('success')): ?>
+        <script>
+            swal({
+                title: '<?= esc(session('success')) ?>',
+                icon: 'success',
+            });
+        </script>
+    <?php endif; ?>
+    <?php if (session()->has('error')): ?>
+        <script>
+            swal({
+                title: '<?= esc(session('error')) ?>',
+                icon: 'error',
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

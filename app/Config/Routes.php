@@ -2,27 +2,24 @@
 use App\Controllers\Auth;
 use App\Controllers\Home;
 use App\Controllers\Admin;
-use App\Controllers\TestEmail;
 
-// Authentication routes
 $routes->get('/', [Auth::class, 'index']);
 $routes->post('auth/ajaxLogin', [Auth::class, 'ajaxLogin']);
 $routes->post('auth/ajaxSignup', [Auth::class, 'ajaxSignup']);
-$routes->post('doLogin', [Auth::class, 'doLogin']); // Keep for fallback
-$routes->post('signup', [Auth::class, 'signup']); // Keep for fallback
+$routes->match(['get', 'post'], 'auth/verify', [Auth::class, 'verify']);
 $routes->get('logout', [Auth::class, 'logout']);
-$routes->get('auth/verify', [Auth::class, 'verify']);
-$routes->post('auth/verify', [Auth::class, 'verify']);
 
-// Home routes
-$routes->get('home', [Home::class, 'index']);
-$routes->post('book', [Home::class, 'book']);
+$routes->group('home', ['filter' => 'auth:user'], function($routes) {
+    $routes->get('/', [Home::class, 'index']);
+    $routes->post('book', [Home::class, 'book']);
+});
 
-// Admin routes
-$routes->group('admin', function($routes) {
+$routes->group('admin', ['filter' => 'auth:staff'], function($routes) {
     $routes->get('/', [Admin::class, 'index']);
     $routes->get('dashboard', [Admin::class, 'dashboard']);
+    $routes->get('chartdata', [Admin::class, 'getChartData']);
     $routes->get('roombook', [Admin::class, 'roombook']);
+    $routes->post('addroombook', [Admin::class, 'addroombook']);
     $routes->get('payment', [Admin::class, 'payment']);
     $routes->get('room', [Admin::class, 'room']);
     $routes->get('staff', [Admin::class, 'staff']);
@@ -39,8 +36,6 @@ $routes->group('admin', function($routes) {
     $routes->post('addstaff', [Admin::class, 'addstaff']);
 });
 
-
-// Fallback route
 $routes->get('(:any)', function() {
     return redirect()->to('/');
 });

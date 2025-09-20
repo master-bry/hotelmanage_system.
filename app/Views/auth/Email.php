@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -16,11 +17,21 @@
                     </div>
                     <div class="card-body">
                         <?php if (session()->getFlashdata('error')): ?>
-                            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+                            <script>
+                                swal({
+                                    title: '<?= esc(session()->getFlashdata('error')) ?>',
+                                    icon: 'error',
+                                });
+                            </script>
                         <?php endif; ?>
                         
                         <?php if (session()->getFlashdata('success')): ?>
-                            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+                            <script>
+                                swal({
+                                    title: '<?= esc(session()->getFlashdata('success')) ?>',
+                                    icon: 'success',
+                                });
+                            </script>
                         <?php endif; ?>
                         
                         <form action="<?= base_url('auth/verify') ?>" method="POST">
@@ -37,5 +48,6 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

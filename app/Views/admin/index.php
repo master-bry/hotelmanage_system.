@@ -5,16 +5,16 @@
         <?php echo view('admin/dashboard'); ?>
     </div>
     <div class="frame frame2" data-url="<?= base_url('admin/roombook') ?>">
-        <!-- Content loaded dynamically via JS -->
+        <div>Loading...</div>
     </div>
     <div class="frame frame3" data-url="<?= base_url('admin/payment') ?>">
-        <!-- Content loaded dynamically via JS -->
+        <div>Loading...</div>
     </div>
     <div class="frame frame4" data-url="<?= base_url('admin/room') ?>">
-        <!-- Content loaded dynamically via JS -->
+        <div>Loading...</div>
     </div>
     <div class="frame frame5" data-url="<?= base_url('admin/staff') ?>">
-        <!-- Content loaded dynamically via JS -->
+        <div>Loading...</div>
     </div>
 </div>
 <script>
@@ -29,13 +29,21 @@ const frameActive = function (manual) {
     frames[manual].classList.add('active');
 
     const url = frames[manual].getAttribute('data-url');
-    if (!frames[manual].innerHTML.trim()) {
-        fetch(url)
-            .then(response => response.text())
-            .then(data => {
-                frames[manual].innerHTML = data;
-            })
-            .catch(error => console.error('Error loading content:', error));
+    if (!frames[manual].innerHTML.trim() || frames[manual].innerHTML.includes('Loading...')) {
+        frames[manual].innerHTML = '<div>Loading...</div>';
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(data => {
+            frames[manual].innerHTML = data;
+        })
+        .catch(error => {
+            console.error('Error loading content:', error);
+            frames[manual].innerHTML = '<div class="alert alert-danger">Failed to load content. Please try again.</div>';
+        });
     }
 };
 
