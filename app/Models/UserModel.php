@@ -11,16 +11,16 @@ class UserModel extends Model
     protected $useTimestamps = false;
     
     // Check user login (both regular users and staff)
-    public function checkLogin($email, $password)
-    {
-        $user = $this->where('Email', $email)->first();
-        
-        if ($user && password_verify($password, $user['Password'])) {
-            return $user;
-        }
-        
-        return false;
+public function checkLogin($email, $password)
+{
+    $user = $this->where('Email', $email)->first();
+    
+    if ($user && password_verify($password, $user['Password'])) {
+        return $user;
     }
+    
+    return false;
+}
     
     // Get user by email
     public function getByEmail($email)
