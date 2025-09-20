@@ -13,6 +13,11 @@ class Home extends Controller
     {
         $this->session = \Config\Services::session();
         $this->roombookModel = new RoombookModel();
+        
+        // Check if user is logged in
+        if (!$this->session->has('usermail')) {
+            return redirect()->to(base_url('/'));
+        }
     }
 
     public function index()
@@ -65,6 +70,6 @@ class Home extends Controller
         } else {
             $this->session->setFlashdata('error', 'Failed to submit booking request');
         }
-        return redirect()->to(base_url('/'));
+        return redirect()->to(base_url('home'));
     }
 }
