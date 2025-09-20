@@ -24,13 +24,23 @@ class Database extends Config
      *
      * @var array<string, mixed>
      */
-   public $default = [
+  public $default = [
     'DSN'      => '',
     'hostname' => 'localhost',
     'username' => 'root',
     'password' => '1234',
     'database' => 'skybirdhotel',
     'DBDriver' => 'MySQLi',
+    'DBPrefix' => '',
+    'pConnect' => false,
+    'DBDebug'  => (ENVIRONMENT !== 'development'),
+    'charset'  => 'utf8mb4',
+    'DBCollat' => 'utf8mb4_general_ci',
+    'swapPre'  => '',
+    'encrypt'  => false,
+    'compress' => false,
+    'strictOn' => false,
+    'failover' => [],
     'port'     => 3306,
 ];
     
