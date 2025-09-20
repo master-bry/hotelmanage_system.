@@ -47,8 +47,8 @@ class Auth extends Controller
         $user = $this->userModel->where('Email', $email)->first();
         if ($user && password_verify($password, $user['Password'])) {
             $this->session->set('usermail', $email);
-            $isStaff = ($email === 'admin@skybird.com');
-            $this->session->set('isStaff', $isStaff);
+            $this->session->set('user_id', $user['id']);
+            $this->session->set('isStaff', $user['is_staff']);
             return redirect()->to(base_url('home'));
         }
 
@@ -63,7 +63,7 @@ class Auth extends Controller
         }
 
         $rules = [
-            'Email' => 'required|valid_email|is_unique[signup.Email]',
+            'Email' => 'required|valid_email|is_unique[users.Email]',
             'Password' => 'required|min_length[6]',
             'CPassword' => 'required|matches[Password]',
         ];
@@ -75,9 +75,12 @@ class Auth extends Controller
         $data = [
             'Email' => $this->request->getPost('Email'),
             'Password' => password_hash($this->request->getPost('Password'), PASSWORD_DEFAULT),
+            'is_staff' => 0, // Regular user by default
         ];
+        
         if ($this->userModel->insert($data)) {
             $this->session->set('usermail', $data['Email']);
+            $this->session->set('user_id', $this->userModel->getInsertID());
             $this->session->set('isStaff', 0);
 
             // Send confirmation email
@@ -94,11 +97,6 @@ class Auth extends Controller
 
         $this->session->setFlashdata('error', 'Failed to create account');
         return redirect()->back()->withInput();
-    }
-
-    public function getSignupForm()
-    {
-        return view('signup_form_partial');
     }
 
     public function logout()

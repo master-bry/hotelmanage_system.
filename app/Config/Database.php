@@ -29,7 +29,7 @@ class Database extends Config
     'hostname' => 'localhost',
     'username' => 'root',
     'password' => '1234',
-    'database' => 'bluebirdhotel',
+    'database' => 'skybirdhotel',
     'DBDriver' => 'MySQLi',
     'port'     => 3306,
 ];

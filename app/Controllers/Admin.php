@@ -8,13 +8,13 @@ use App\Models\StaffModel;
 
 class Admin extends BaseController
 {
-     protected $session;
+    protected $session;
     protected $roomModel;
     protected $roombookModel;
     protected $paymentModel;
     protected $staffModel;
 
-   public function __construct()
+    public function __construct()
     {
         $this->session = \Config\Services::session();
         $this->roomModel = new RoomModel();
@@ -25,6 +25,7 @@ class Admin extends BaseController
 
     public function index()
     {
+        // Check if user is logged in and is staff
         if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
             return redirect()->to(base_url('/'));
         }
@@ -35,15 +36,19 @@ class Admin extends BaseController
         return view('admin/index', $data);
     }
 
-
     public function logout()
     {
         $this->session->destroy();
-        return redirect()->to(base_url('login'));
+        return redirect()->to(base_url('/'));
     }
 
     public function dashboard()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $roombookCount = $this->roombookModel->countAll();
         $staffCount = $this->staffModel->countAll();
         $roomCount = $this->roomModel->countAll();
@@ -78,6 +83,11 @@ class Admin extends BaseController
 
     public function roombook()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $roombookData = $this->roombookModel->findAll();
         $data = [
             'title' => 'SKY Hotel - Room Booking',
@@ -88,6 +98,11 @@ class Admin extends BaseController
 
     public function payment()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $paymentData = $this->paymentModel->findAll();
         $data = [
             'title' => 'SKY Hotel - Payment',
@@ -98,6 +113,11 @@ class Admin extends BaseController
 
     public function room()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $roomData = $this->roomModel->findAll();
         $data = [
             'title' => 'SKY Hotel - Rooms',
@@ -108,6 +128,11 @@ class Admin extends BaseController
 
     public function staff()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $staffData = $this->staffModel->findAll();
         $data = [
             'title' => 'SKY Hotel - Staff',
@@ -118,6 +143,11 @@ class Admin extends BaseController
 
     public function addroom()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         if ($this->request->getMethod() === 'post') {
             $data = [
                 'type' => $this->request->getPost('troom'),
@@ -132,24 +162,44 @@ class Admin extends BaseController
 
     public function roomdelete($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $this->roomModel->delete($id);
         return redirect()->to(base_url('admin/room'));
     }
 
     public function roombookdelete($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $this->roombookModel->delete($id);
         return redirect()->to(base_url('admin/roombook'));
     }
 
     public function paymantdelete($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $this->paymentModel->delete($id);
         return redirect()->to(base_url('admin/payment'));
     }
 
     public function invoiceprint($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $booking = $this->paymentModel->find($id);
         if (!$booking) {
             return redirect()->to(base_url('admin/payment'));
@@ -206,6 +256,11 @@ class Admin extends BaseController
 
     public function exportdata()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $roombook_record = $this->roombookModel->findAll();
         if ($this->request->getPost('exportexcel')) {
             $filename = "bluebird_roombook_data_" . date('Ymd') . ".xls";
@@ -226,9 +281,13 @@ class Admin extends BaseController
         return redirect()->to(base_url('admin/roombook'));
     }
 
-
     public function roomconfirm($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $booking = $this->roombookModel->find($id);
         if (!$booking) {
             return redirect()->to(base_url('admin/roombook'));
@@ -279,7 +338,6 @@ class Admin extends BaseController
             $fintot = $ttot + $mepr + $btot;
 
             $paymentData = [
-                'id' => $id,
                 'Name' => $booking['Name'],
                 'Email' => $booking['Email'],
                 'RoomType' => $booking['RoomType'],
@@ -305,6 +363,11 @@ class Admin extends BaseController
 
     public function roombookedit($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $booking = $this->roombookModel->find($id);
         if (!$booking) {
             return redirect()->to(base_url('admin/roombook'));
@@ -319,6 +382,11 @@ class Admin extends BaseController
 
     public function roombookupdate($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         if ($this->request->getMethod() === 'post') {
             $data = [
                 'Name' => $this->request->getPost('Name'),
@@ -342,12 +410,22 @@ class Admin extends BaseController
 
     public function staffdelete($id)
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         $this->staffModel->delete($id);
         return redirect()->to(base_url('admin/staff'));
     }
 
     public function addstaff()
     {
+        // Check if user is logged in and is staff
+        if (!$this->session->has('usermail') || !$this->session->get('isStaff')) {
+            return redirect()->to(base_url('/'));
+        }
+
         if ($this->request->getMethod() === 'post') {
             $data = [
                 'name' => $this->request->getPost('staffname'),
