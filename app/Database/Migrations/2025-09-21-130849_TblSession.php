@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
@@ -11,25 +12,22 @@ class TblSession extends Migration
             'id' => [
                 'type' => 'VARCHAR',
                 'constraint' => 128,
-                'null' => false,
             ],
             'ip_address' => [
                 'type' => 'VARCHAR',
                 'constraint' => 45,
-                'null' => false,
+                'null' => true,
             ],
             'timestamp' => [
-                'type' => 'TIMESTAMP',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
+                'type' => 'DATETIME',
+                'null' => true,
             ],
             'data' => [
                 'type' => 'BLOB',
-                'null' => false,
+                'null' => true,
             ],
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->addKey('timestamp');
         $this->forge->createTable('ci_sessions');
     }
 
