@@ -1,12 +1,16 @@
 <?php
+namespace Config;
+
 use App\Controllers\Auth;
 use App\Controllers\Home;
 use App\Controllers\Admin;
 
+$routes = Services::routes();
+
 $routes->get('/', [Auth::class, 'index']);
 $routes->post('auth/ajaxLogin', [Auth::class, 'ajaxLogin']);
 $routes->post('auth/ajaxSignup', [Auth::class, 'ajaxSignup']);
-$routes->match(['get', 'post'], 'auth/verify', [Auth::class, 'verify']);
+$routes->match(['GET', 'POST'], 'auth/verify', [Auth::class, 'verify']);
 $routes->get('logout', [Auth::class, 'logout']);
 
 $routes->group('home', ['filter' => 'auth:user'], function($routes) {
