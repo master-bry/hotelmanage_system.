@@ -20,14 +20,8 @@ class Auth extends Controller
     public function index()
     {
         if ($this->session->has('usermail')) {
-            if ($this->session->get('isStaff')) {
-                return redirect()->to(base_url('admin'));
-            } else {
-                return redirect()->to(base_url('home'));
-            }
+            return $this->session->get('isStaff') ? redirect()->to(base_url('admin')) : redirect()->to(base_url('home'));
         }
-
-        log_message('debug', 'Rendering auth view');
         return view('auth', ['title' => 'SKY Hotel - Login/Signup']);
     }
 
@@ -37,7 +31,6 @@ class Auth extends Controller
             return $this->response->setStatusCode(405)->setJSON(['error' => 'Method not allowed']);
         }
 
-        log_message('debug', 'AJAX login attempt: ' . print_r($this->request->getPost(), true));
         $email = $this->request->getPost('Email');
         $password = $this->request->getPost('Password');
         $loginType = $this->request->getPost('login_type');
@@ -48,51 +41,45 @@ class Auth extends Controller
         ];
 
         if (!$this->validate($rules)) {
-            log_message('error', 'Login validation failed: Invalid email or password format from IP: ' . $this->request->getIPAddress());
             return $this->response->setJSON([
                 'success' => false,
-                'error' => 'Invalid email or password format'
+                'error' => 'Invalid email or password'
             ]);
         }
 
         $user = $this->userModel->checkLogin($email, $password);
-
-        if ($user) {
-            log_message('debug', 'User found: ' . $user['Email']);
-            if (($loginType === 'staff' && $user['is_staff'] != 1) || 
-                ($loginType === 'user' && $user['is_staff'] == 1)) {
-                log_message('error', 'Login type mismatch for ' . $user['Email'] . ' from IP: ' . $this->request->getIPAddress());
-                return $this->response->setJSON([
-                    'success' => false,
-                    'error' => 'Invalid login type'
-                ]);
-            }
-
-            if (!$user['is_verified']) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'error' => 'Please verify your email first',
-                    'redirect' => base_url('auth/verify')
-                ]);
-            }
-
-            $this->session->set([
-                'usermail' => $user['Email'],
-                'user_id' => $user['id'],
-                'isStaff' => $user['is_staff']
-            ]);
-            $redirect = $user['is_staff'] ? base_url('admin') : base_url('home');
-            log_message('debug', 'Login successful for ' . $user['Email'] . ', redirecting to ' . $redirect);
+        if (!$user) {
             return $this->response->setJSON([
-                'success' => true,
-                'redirect' => $redirect
+                'success' => false,
+                'error' => 'Invalid email or password'
             ]);
         }
 
-        log_message('error', 'Login failed for email: ' . $email . ' from IP: ' . $this->request->getIPAddress());
+        if (($loginType === 'staff' && $user['is_staff'] != 1) || 
+            ($loginType === 'user' && $user['is_staff'] == 1)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => 'Invalid login type'
+            ]);
+        }
+
+        if (!$user['is_verified']) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => 'Please verify your email first',
+                'redirect' => base_url('auth/verify')
+            ]);
+        }
+
+        $this->session->set([
+            'usermail' => $user['Email'],
+            'user_id' => $user['id'],
+            'isStaff' => $user['is_staff']
+        ]);
+
         return $this->response->setJSON([
-            'success' => false,
-            'error' => 'Invalid email or password'
+            'success' => true,
+            'redirect' => $user['is_staff'] ? base_url('admin') : base_url('home')
         ]);
     }
 
@@ -102,16 +89,14 @@ class Auth extends Controller
             return $this->response->setStatusCode(405)->setJSON(['error' => 'Method not allowed']);
         }
 
-        log_message('debug', 'Signup attempt: ' . print_r($this->request->getPost(), true));
         $rules = [
             'Username' => 'required|min_length[3]',
             'Email' => 'required|valid_email|is_unique[users.Email]',
-            'Password' => 'required|min_length[8]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/]',
+            'Password' => 'required|min_length[8]|regex_match[/^(?=.*[a-zA-Z])(?=.*\d).*$/]',
             'CPassword' => 'required|matches[Password]',
         ];
 
         if (!$this->validate($rules)) {
-            log_message('error', 'Signup validation failed: ' . implode(', ', $this->validator->getErrors()) . ' from IP: ' . $this->request->getIPAddress());
             return $this->response->setJSON([
                 'success' => false,
                 'error' => implode(', ', $this->validator->getErrors())
@@ -129,9 +114,7 @@ class Auth extends Controller
             'verification_code' => $verificationCode
         ];
 
-        log_message('debug', 'Data to insert: ' . print_r($data, true));
         if ($this->userModel->insert($data)) {
-            log_message('debug', 'User inserted successfully for email: ' . $data['Email']);
             $this->session->set([
                 'usermail' => $data['Email'],
                 'user_id' => $this->userModel->getInsertID(),
@@ -142,19 +125,15 @@ class Auth extends Controller
             $this->email->setSubject('Verify Your Email');
             $this->email->setMessage("Please use this code to verify your email: $verificationCode");
             if (!$this->email->send()) {
-                log_message('error', 'Failed to send verification email to ' . $data['Email'] . ': ' . $this->email->printDebugger());
-            } else {
-                log_message('debug', 'Verification email sent successfully to: ' . $data['Email']);
+                log_message('error', 'Failed to send verification email to ' . $data['Email']);
             }
 
-            log_message('debug', 'Signup successful, redirecting to verify');
             return $this->response->setJSON([
                 'success' => true,
                 'redirect' => base_url('auth/verify')
             ]);
         }
 
-        log_message('error', 'Failed to insert user for email: ' . $data['Email'] . ' from IP: ' . $this->request->getIPAddress());
         return $this->response->setJSON([
             'success' => false,
             'error' => 'Failed to create account'
@@ -183,7 +162,6 @@ class Auth extends Controller
 
     public function logout()
     {
-        log_message('debug', 'User logged out from IP: ' . $this->request->getIPAddress());
         $this->session->destroy();
         return redirect()->to(base_url('/'));
     }

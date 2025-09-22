@@ -12,6 +12,9 @@ class UserModel extends Model
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 
+    // Note: Ensure an index on Email for faster lookups:
+    // CREATE INDEX idx_email ON users(Email);
+
     public function checkLogin($email, $password)
     {
         $user = $this->where('Email', $email)->first();

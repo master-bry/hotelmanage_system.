@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="<?= base_url('css/login.css') ?>" as="style">
+    <link rel="preload" href="<?= base_url('image/bluebirdlogo.png') ?>" as="image">
     <link rel="stylesheet" href="<?= base_url('css/login.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
@@ -11,6 +13,11 @@
     <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
     <link rel="stylesheet" href="<?= base_url('css/flash.css') ?>">
     <title><?= esc($title ?? 'SKY Hotel') ?></title>
+    <style>
+        .auth_btn .loading { display: none; }
+        .auth_btn.submitting .loading { display: inline-block; }
+        .auth_btn.submitting { opacity: 0.7; cursor: not-allowed; }
+    </style>
 </head>
 <body>
     <section id="carouselExampleControls" class="carousel slide carousel_section" data-bs-ride="carousel">
@@ -64,7 +71,7 @@
                         <input type="password" class="form-control" name="Password" placeholder=" " required>
                         <label for="Password">Password</label>
                     </div>
-                    <button type="submit" name="login_submit" class="auth_btn">Log In</button>
+                    <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
                     <div class="footer_line">
                         <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
                     </div>
@@ -94,7 +101,7 @@
                     <input type="password" class="form-control" name="CPassword" placeholder=" " required>
                     <label for="CPassword">Confirm Password</label>
                 </div>
-                <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up</button>
+                <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up <span class="loading">Loading...</span></button>
                 <div class="footer_line">
                     <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
                 </div>
@@ -106,36 +113,100 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
+        let isSubmitting = false;
 
         const authForm = document.getElementById('auth_form');
         const signupTemplate = document.getElementById('signup_template');
-        const baseUrl = '<?= base_url() ?>'; // Store base_url in a variable
-
-        // Pass session error to JavaScript as a variable
+        const baseUrl = '<?= base_url() ?>';
         const sessionError = '<?= session()->has('error') ? esc(session('error')) : '' ?>';
 
-        // Debug logging
-        console.log('authForm element:', authForm);
-        console.log('signupTemplate element:', signupTemplate);
-        console.log('Session error:', sessionError);
-
-        if (!authForm || !signupTemplate) {
-            console.error('authForm or signupTemplate not found in DOM');
-        }
-
-        // Display session error if it exists
         if (sessionError) {
-            swal({
-                title: sessionError,
-                icon: 'error',
-            });
+            swal({ title: sessionError, icon: 'error' });
         }
+
+        // Client-side validation for signup
+        document.getElementById('signupForm')?.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return;
+            }
+            isSubmitting = true;
+            setTimeout(() => { isSubmitting = false; }, 2000);
+
+            const password = document.querySelector('input[name="Password"]').value;
+            const cPassword = document.querySelector('input[name="CPassword"]').value;
+            const email = document.querySelector('input[name="Email"]').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
+                return;
+            }
+            if (password !== cPassword) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Passwords do not match', icon: 'error' });
+                return;
+            }
+            if (password.length < 8) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Password must be at least 8 characters', icon: 'error' });
+                return;
+            }
+        });
+
+        // Client-side validation for login
+        document.getElementById('userlogin')?.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return;
+            }
+            isSubmitting = true;
+            setTimeout(() => { isSubmitting = false; }, 2000);
+
+            const email = document.querySelector('input[name="Email"]').value;
+            const password = document.querySelector('input[name="Password"]').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
+                return;
+            }
+            if (password.length < 6) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Password must be at least 6 characters', icon: 'error' });
+                return;
+            }
+
+            this.querySelector('.auth_btn').classList.add('submitting');
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                this.querySelector('.auth_btn').classList.remove('submitting');
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    swal({ title: 'Error', text: data.error, icon: 'error' });
+                }
+            })
+            .catch(error => {
+                this.querySelector('.auth_btn').classList.remove('submitting');
+                swal({ title: 'Error', text: 'An error occurred during login. Please try again.', icon: 'error' });
+            });
+        });
 
         // Toggle to signup page
         document.querySelectorAll('.page_move_btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('Page move button clicked:', btn.textContent.trim());
                 if (btn.textContent.trim() === 'Sign Up') {
                     const signupContent = signupTemplate.content.cloneNode(true);
                     authForm.innerHTML = '';
@@ -160,18 +231,14 @@
                                 <input type="password" class="form-control" name="Password" placeholder=" " required>
                                 <label for="Password">Password</label>
                             </div>
-                            <button type="submit" name="login_submit" class="auth_btn">Log In</button>
+                            <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
                             <div class="footer_line">
                                 <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
                             </div>
                         </form>
                     `;
-                    // Display session error if it was set before toggle
                     if (sessionError) {
-                        swal({
-                            title: sessionError,
-                            icon: 'error',
-                        });
+                        swal({ title: sessionError, icon: 'error' });
                     }
                     authForm.classList.remove('user_signup');
                     authForm.classList.add('user_login');
@@ -183,49 +250,21 @@
         const roleBtns = document.querySelectorAll('.role_btn .btns');
         roleBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                console.log('Role button clicked:', btn.dataset.type);
                 roleBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 const userLoginForm = authForm.querySelector('#userlogin');
                 if (btn.dataset.type === 'user') {
                     userLoginForm.querySelector('input[name="login_type"]').value = 'user';
-                    userLoginForm.action = '<?= base_url('auth/ajaxLogin') ?>';
                 } else {
                     userLoginForm.querySelector('input[name="login_type"]').value = 'staff';
-                    userLoginForm.action = '<?= base_url('auth/ajaxLogin') ?>'; // Same action for now
                 }
             });
         });
 
-        // Form submission handlers
-        document.getElementById('userlogin')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('User login form submitted');
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect;
-                } else {
-                    swal({ title: 'Error', text: data.error, icon: 'error' });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                swal({ title: 'Error', text: 'An error occurred during login. Please try again.', icon: 'error' });
-            });
-        });
-
+        // Signup form submission
         document.getElementById('signupForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Signup form submitted');
+            this.querySelector('.auth_btn').classList.add('submitting');
             const formData = new FormData(this);
             fetch(this.action, {
                 method: 'POST',
@@ -236,6 +275,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                this.querySelector('.auth_btn').classList.remove('submitting');
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
@@ -243,7 +283,7 @@
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                this.querySelector('.auth_btn').classList.remove('submitting');
                 swal({ title: 'Error', text: 'An error occurred during signup. Please try again.', icon: 'error' });
             });
         });
