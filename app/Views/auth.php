@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link rel="stylesheet" href="<?= base_url('css/flash.css') ?>">
     <title><?= esc($title ?? 'SKY Hotel') ?></title>
     <style>
@@ -101,6 +102,9 @@
                     <input type="password" class="form-control" name="CPassword" placeholder=" " required>
                     <label for="CPassword">Confirm Password</label>
                 </div>
+                <div class="mb-3">
+                    <div class="g-recaptcha" data-sitekey="your-recaptcha-site-key"></div> <!-- Replace with your Google reCAPTCHA site key -->
+                </div>
                 <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up <span class="loading">Loading...</span></button>
                 <div class="footer_line">
                     <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
@@ -136,23 +140,58 @@
             const password = document.querySelector('input[name="Password"]').value;
             const cPassword = document.querySelector('input[name="CPassword"]').value;
             const email = document.querySelector('input[name="Email"]').value;
+            const recaptcha = document.querySelector('textarea[name="g-recaptcha-response"]').value;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (!emailRegex.test(email)) {
                 e.preventDefault();
                 swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
+                isSubmitting = false;
                 return;
             }
             if (password !== cPassword) {
                 e.preventDefault();
                 swal({ title: 'Error', text: 'Passwords do not match', icon: 'error' });
+                isSubmitting = false;
                 return;
             }
             if (password.length < 8) {
                 e.preventDefault();
                 swal({ title: 'Error', text: 'Password must be at least 8 characters', icon: 'error' });
+                isSubmitting = false;
                 return;
             }
+            if (!recaptcha) {
+                e.preventDefault();
+                swal({ title: 'Error', text: 'Please complete the CAPTCHA', icon: 'error' });
+                isSubmitting = false;
+                return;
+            }
+
+            this.querySelector('.auth_btn').classList.add('submitting');
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                this.querySelector('.auth_btn').classList.remove('submitting');
+                isSubmitting = false;
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    swal({ title: 'Error', text: data.error, icon: 'error' });
+                }
+            })
+            .catch(error => {
+                this.querySelector('.auth_btn').classList.remove('submitting');
+                isSubmitting = false;
+                swal({ title: 'Error', text: 'An error occurred during signup. Please try again.', icon: 'error' });
+            });
         });
 
         // Client-side validation for login
@@ -171,11 +210,13 @@
             if (!emailRegex.test(email)) {
                 e.preventDefault();
                 swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
+                isSubmitting = false;
                 return;
             }
             if (password.length < 6) {
                 e.preventDefault();
                 swal({ title: 'Error', text: 'Password must be at least 6 characters', icon: 'error' });
+                isSubmitting = false;
                 return;
             }
 
@@ -191,6 +232,7 @@
             .then(response => response.json())
             .then(data => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
+                isSubmitting = false;
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
@@ -199,6 +241,7 @@
             })
             .catch(error => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
+                isSubmitting = false;
                 swal({ title: 'Error', text: 'An error occurred during login. Please try again.', icon: 'error' });
             });
         });
@@ -258,33 +301,6 @@
                 } else {
                     userLoginForm.querySelector('input[name="login_type"]').value = 'staff';
                 }
-            });
-        });
-
-        // Signup form submission
-        document.getElementById('signupForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            this.querySelector('.auth_btn').classList.add('submitting');
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                if (data.success) {
-                    window.location.href = data.redirect;
-                } else {
-                    swal({ title: 'Error', text: data.error, icon: 'error' });
-                }
-            })
-            .catch(error => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                swal({ title: 'Error', text: 'An error occurred during signup. Please try again.', icon: 'error' });
             });
         });
     </script>
