@@ -7,40 +7,43 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-// Authentication Routes
+// Main route
 $routes->get('/', 'Auth::index');
-$routes->match(['post'], 'auth/ajaxLogin', 'Auth::ajaxLogin');
-$routes->match(['post'], 'auth/ajaxSignup', 'Auth::ajaxSignup');
+
+// Auth routes
+$routes->post('auth/login', 'Auth::login');
+$routes->post('auth/register', 'Auth::register');
 $routes->get('auth/logout', 'Auth::logout');
 
-// Home Routes (for regular users)
-$routes->group('home', function($routes) {
-    $routes->get('/', 'Home::index');
-    $routes->post('book', 'Home::book');
-});
+// Home routes
+$routes->get('home', 'Home::index');
+$routes->post('home/book', 'Home::book');
 
-// Admin Routes (for staff)
+// Admin routes
 $routes->group('admin', function($routes) {
     $routes->get('/', 'Admin::index');
     $routes->get('dashboard', 'Admin::dashboard');
-    $routes->get('chartdata', 'Admin::getChartData');
     $routes->get('roombook', 'Admin::roombook');
-    $routes->post('addroombook', 'Admin::addroombook');
+    $routes->post('roombook/add', 'Admin::addRoombook');
+    $routes->get('roombook/delete/(:num)', 'Admin::deleteRoombook/$1');
+    $routes->get('roombook/edit/(:num)', 'Admin::editRoombook/$1');
+    $routes->post('roombook/update/(:num)', 'Admin::updateRoombook/$1');
+    $routes->get('roombook/confirm/(:num)', 'Admin::confirmRoombook/$1');
+    
     $routes->get('payment', 'Admin::payment');
-    $routes->get('room', 'Admin::room');
+    $routes->get('payment/delete/(:num)', 'Admin::deletePayment/$1');
+    $routes->get('payment/invoice/(:num)', 'Admin::invoice/$1');
+    
+    $routes->get('rooms', 'Admin::rooms');
+    $routes->post('rooms/add', 'Admin::addRoom');
+    $routes->get('rooms/delete/(:num)', 'Admin::deleteRoom/$1');
+    
     $routes->get('staff', 'Admin::staff');
-    $routes->post('addroom', 'Admin::addroom');
-    $routes->get('roomdelete/(:num)', 'Admin::roomdelete/$1');
-    $routes->get('roombookdelete/(:num)', 'Admin::roombookdelete/$1');
-    $routes->get('paymantdelete/(:num)', 'Admin::paymantdelete/$1');
-    $routes->get('invoiceprint/(:num)', 'Admin::invoiceprint/$1');
-    $routes->post('exportdata', 'Admin::exportdata');
-    $routes->get('roomconfirm/(:num)', 'Admin::roomconfirm/$1');
-    $routes->get('roombookedit/(:num)', 'Admin::roombookedit/$1');
-    $routes->post('roombookupdate/(:num)', 'Admin::roombookupdate/$1');
-    $routes->get('staffdelete/(:num)', 'Admin::staffdelete/$1');
-    $routes->post('addstaff', 'Admin::addstaff');
+    $routes->post('staff/add', 'Admin::addStaff');
+    $routes->get('staff/delete/(:num)', 'Admin::deleteStaff/$1');
+    
+    $routes->get('chart-data', 'Admin::getChartData');
 });
 
-// Catch-all route for 404
+// Catch-all route
 $routes->get('(:any)', 'Auth::index');

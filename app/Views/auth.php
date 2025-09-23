@@ -2,277 +2,374 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="<?= base_url('css/login.css') ?>" as="style">
-    <link rel="preload" href="<?= base_url('image/bluebirdlogo.png') ?>" as="image">
-    <link rel="stylesheet" href="<?= base_url('css/login.css') ?>">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
-    <link rel="stylesheet" href="<?= base_url('css/flash.css') ?>">
-    <title><?= esc($title ?? 'SKY Hotel') ?></title>
+    <title><?= esc($title) ?></title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        .auth_btn .loading { display: none; }
-        .auth_btn.submitting .loading { display: inline-block; }
-        .auth_btn.submitting { opacity: 0.7; cursor: not-allowed; }
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .auth-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .auth-header img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-body {
+            padding: 2rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn-primary {
+            background: var(--secondary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .user-type-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .user-type-btn {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .user-type-btn.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6c757d;
+        }
+        
+        .auth-switch a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .btn-loading .loading {
+            display: inline-block;
+        }
+        
+        .btn-loading .text {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <section id="carouselExampleControls" class="carousel slide carousel_section" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img class="carousel-image" src="<?= base_url('image/hotel1.jpg') ?>" alt="Hotel Image 1">
-            </div>
-            <div class="carousel-item">
-                <img class="carousel-image" src="<?= base_url('image/hotel2.jpg') ?>" alt="Hotel Image 2">
-            </div>
-            <div class="carousel-item">
-                <img class="carousel-image" src="<?= base_url('image/hotel3.jpg') ?>" alt="Hotel Image 3">
-            </div>
-            <div class="carousel-item">
-                <img class="carousel-image" src="<?= base_url('image/hotel4.jpg') ?>" alt="Hotel Image 4">
-            </div>
-        </div>
-    </section>
-
-    <section id="auth_section">
-        <div class="logo">
-            <img class="bluebirdlogo" src="<?= base_url('image/bluebirdlogo.png') ?>" alt="logo">
-            <p>SkyBird HOTEL</p>
-        </div>
-
-        <div class="auth_container">
-            <div id="auth_form" class="authsection user_login active">
-                <h2>Log In</h2>
-                <div class="role_btn">
-                    <div class="btns active" data-type="user">User</div>
-                    <div class="btns" data-type="staff">Staff</div>
-                </div>
-
-                <?php if (session()->has('error')): ?>
-                    <script>
-                        swal({
-                            title: '<?= esc(session('error')) ?>',
-                            icon: 'error',
-                        });
-                    </script>
-                <?php endif; ?>
-
-                <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
-                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                    <input type="hidden" name="login_type" value="user">
-                    <div class="form-floating">
-                        <input type="email" class="form-control" name="Email" placeholder=" " required>
-                        <label for="Email">Email</label>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <img src="<?= base_url('image/bluebirdlogo.png') ?>" alt="SkyBird Hotel" class="img-fluid">
+                        <h3>SkyBird Hotel</h3>
+                        <p class="mb-0">Welcome to our luxury experience</p>
                     </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="Password" placeholder=" " required>
-                        <label for="Password">Password</label>
+                    
+                    <div class="auth-body">
+                        <!-- Login Form -->
+                        <div id="login-form">
+                            <h4 class="text-center mb-4">Sign In to Your Account</h4>
+                            
+                            <div class="user-type-toggle">
+                                <button type="button" class="user-type-btn active" data-type="user">
+                                    <i class="fas fa-user me-2"></i>Guest
+                                </button>
+                                <button type="button" class="user-type-btn" data-type="staff">
+                                    <i class="fas fa-concierge-bell me-2"></i>Staff
+                                </button>
+                            </div>
+                            
+                            <form id="loginForm">
+                                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                                <input type="hidden" name="user_type" value="user">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 btn-login">
+                                    <span class="text">Sign In</span>
+                                    <span class="loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Signing In...
+                                    </span>
+                                </button>
+                            </form>
+                            
+                            <div class="auth-switch">
+                                Don't have an account? <a id="show-register">Sign Up</a>
+                            </div>
+                        </div>
+                        
+                        <!-- Register Form -->
+                        <div id="register-form" style="display: none;">
+                            <h4 class="text-center mb-4">Create New Account</h4>
+                            
+                            <form id="registerForm">
+                                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" name="username" class="form-control" placeholder="Enter your full name" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password" class="form-control" placeholder="Create a password" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Confirm Password</label>
+                                    <input type="password" name="confirm_password" class="form-control" placeholder="Confirm your password" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 btn-register">
+                                    <span class="text">Create Account</span>
+                                    <span class="loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Creating Account...
+                                    </span>
+                                </button>
+                            </form>
+                            
+                            <div class="auth-switch">
+                                Already have an account? <a id="show-login">Sign In</a>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
-                    <div class="footer_line">
-                        <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <template id="signup_template">
-        <div class="authsection user_signup">
-            <h2>Sign Up</h2>
-            <form id="signupForm" action="<?= base_url('auth/ajaxSignup') ?>" method="POST">
-                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                <div class="form-floating">
-                    <input type="text" class="form-control" name="Username" placeholder=" " required>
-                    <label for="Username">Username</label>
-                </div>
-                <div class="form-floating">
-                    <input type="email" class="form-control" name="Email" placeholder=" " required>
-                    <label for="Email">Email</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control" name="Password" placeholder=" " required>
-                    <label for="Password">Password</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control" name="CPassword" placeholder=" " required>
-                    <label for="CPassword">Confirm Password</label>
-                </div>
-                <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up <span class="loading">Loading...</span></button>
-                <div class="footer_line">
-                    <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
-                </div>
-            </form>
-        </div>
-    </template>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
- <script>
-// Debug version - replace your entire script section with this
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded - starting authentication system');
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    let isSubmitting = false;
-
-    // Debug function to check what's being sent
-    function debugRequest(form, formData) {
-        console.log('=== DEBUG REQUEST ===');
-        console.log('Form action:', form.action);
-        console.log('Form method:', form.method);
-        console.log('Form data:');
-        for (let [key, value] of formData.entries()) {
-            console.log('  ', key + ':', value);
-        }
-        console.log('=== END DEBUG ===');
-    }
-
-    // Handle form submissions
-    document.addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('Form submission intercepted');
-        
-        if (isSubmitting) {
-            console.log('Already submitting, ignoring');
-            return;
-        }
-        
-        const form = e.target;
-        const submitBtn = form.querySelector('.auth_btn');
-        const formData = new FormData(form);
-        
-        // Debug what we're sending
-        debugRequest(form, formData);
-        
-        isSubmitting = true;
-        submitBtn.classList.add('submitting');
-        submitBtn.disabled = true;
-
-        // Use fetch with proper error handling
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const showRegister = document.getElementById('show-register');
+            const showLogin = document.getElementById('show-login');
+            const userTypeBtns = document.querySelectorAll('.user-type-btn');
+            const userTypeInput = document.querySelector('input[name="user_type"]');
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
+            // Switch between login and register forms
+            showRegister.addEventListener('click', function(e) {
+                e.preventDefault();
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            });
             
-            submitBtn.classList.remove('submitting');
-            submitBtn.disabled = false;
-            isSubmitting = false;
+            showLogin.addEventListener('click', function(e) {
+                e.preventDefault();
+                registerForm.style.display = 'none';
+                loginForm.style.display = 'block';
+            });
             
-            if (data.success) {
-                console.log('Success, redirecting to:', data.redirect);
-                window.location.href = data.redirect;
-            } else {
-                swal({
-                    title: 'Error',
-                    text: data.error || 'Unknown error occurred',
-                    icon: 'error'
+            // User type toggle
+            userTypeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    userTypeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    userTypeInput.value = this.dataset.type;
+                });
+            });
+            
+            // Login form submission
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin(this);
+            });
+            
+            // Register form submission
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleRegister(this);
+            });
+            
+            function handleLogin(form) {
+                const btn = form.querySelector('.btn-login');
+                const formData = new FormData(form);
+                
+                btn.classList.add('btn-loading');
+                
+                fetch('<?= base_url('auth/login') ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btn.classList.remove('btn-loading');
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = data.redirect;
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                })
+                .catch(error => {
+                    btn.classList.remove('btn-loading');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Network Error',
+                        text: 'Please check your connection and try again.'
+                    });
                 });
             }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
             
-            submitBtn.classList.remove('submitting');
-            submitBtn.disabled = false;
-            isSubmitting = false;
+            function handleRegister(form) {
+                const btn = form.querySelector('.btn-register');
+                const formData = new FormData(form);
+                
+                btn.classList.add('btn-loading');
+                
+                fetch('<?= base_url('auth/register') ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btn.classList.remove('btn-loading');
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Welcome!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = data.redirect;
+                        });
+                    } else {
+                        let errorMessage = data.message;
+                        if (data.errors) {
+                            errorMessage += '\n' + Object.values(data.errors).join('\n');
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Registration Failed',
+                            text: errorMessage
+                        });
+                    }
+                })
+                .catch(error => {
+                    btn.classList.remove('btn-loading');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Network Error',
+                        text: 'Please check your connection and try again.'
+                    });
+                });
+            }
             
-            swal({
-                title: 'Network Error',
-                text: 'An error occurred during login. Please try again. Error: ' + error.message,
-                icon: 'error'
-            });
+            // Auto-focus first input
+            document.querySelector('input[name="email"]')?.focus();
         });
-    });
-
-    // Page navigation between login and signup
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('page_move_btn')) {
-            e.preventDefault();
-            console.log('Page move button clicked:', e.target.textContent);
-            
-            const targetPage = e.target.textContent.trim();
-            const authForm = document.getElementById('auth_form');
-            const signupTemplate = document.getElementById('signup_template');
-            
-            if (targetPage === 'Sign Up') {
-                const signupContent = signupTemplate.content.cloneNode(true);
-                authForm.innerHTML = '';
-                authForm.appendChild(signupContent);
-                authForm.classList.remove('user_login');
-                authForm.classList.add('user_signup');
-                console.log('Switched to signup page');
-            } else {
-                authForm.innerHTML = `
-                    <h2>Log In</h2>
-                    <div class="role_btn">
-                        <div class="btns active" data-type="user">User</div>
-                        <div class="btns" data-type="staff">Staff</div>
-                    </div>
-                    <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
-                        <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                        <input type="hidden" name="login_type" value="user">
-                        <div class="form-floating">
-                            <input type="email" class="form-control" name="Email" placeholder=" " required>
-                            <label for="Email">Email</label>
-                        </div>
-                        <div class="form-floating">
-                            <input type="password" class="form-control" name="Password" placeholder=" " required>
-                            <label for="Password">Password</label>
-                        </div>
-                        <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
-                        <div class="footer_line">
-                            <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
-                        </div>
-                    </form>
-                `;
-                authForm.classList.remove('user_signup');
-                authForm.classList.add('user_login');
-                console.log('Switched to login page');
-            }
-        }
-    });
-
-    // Role button functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btns')) {
-            console.log('Role button clicked:', e.target.dataset.type);
-            
-            const roleBtns = document.querySelectorAll('.role_btn .btns');
-            roleBtns.forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            const loginType = e.target.getAttribute('data-type');
-            const loginForm = document.getElementById('userlogin');
-            if (loginForm) {
-                const loginTypeInput = loginForm.querySelector('input[name="login_type"]');
-                if (loginTypeInput) {
-                    loginTypeInput.value = loginType;
-                    console.log('Login type set to:', loginType);
-                }
-            }
-        }
-    });
-
-    console.log('Authentication system initialized');
-});
-</script>  
-    <script src ='/javascript/index.js'></script>
+    </script>
 </body>
 </html>

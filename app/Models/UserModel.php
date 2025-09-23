@@ -7,30 +7,31 @@ class UserModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['Email', 'Password', 'Username', 'is_staff', 'created_at', 'updated_at', 'verification_code', 'is_verified'];
+    protected $allowedFields = [
+        'username', 'email', 'password', 'is_staff', 
+        'created_at', 'updated_at'
+    ];
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
+    protected $beforeInsert = ['hashPassword'];
+    protected $beforeUpdate = ['hashPassword'];
 
-    // Note: Ensure an index on Email for faster lookups:
-    // CREATE INDEX idx_email ON users(Email);
-
-    public function checkLogin($email, $password)
+    protected function hashPassword(array $data)
     {
-        $user = $this->where('Email', $email)->first();
-        if ($user && password_verify($password, $user['Password'])) {
-            return $user;
+        if (isset($data['data']['password'])) {
+            $data['data']['password'] = password_hash($data['data']['password'], PASSWORD_DEFAULT);
         }
-        return false;
+        return $data;
     }
 
-    public function getByEmail($email)
+    public function getUserByEmail($email)
     {
-        return $this->where('Email', $email)->first();
+        return $this->where('email', $email)->first();
     }
 
     public function emailExists($email)
     {
-        return $this->where('Email', $email)->countAllResults() > 0;
+        return $this->where('email', $email)->countAllResults() > 0;
     }
 }

@@ -9,19 +9,25 @@ class AuthFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $session = session();
-        if (!$session->has('usermail')) {
-            return redirect()->to(base_url('/'))->with('error', 'Please log in to continue');
+        $session = \Config\Services::session();
+        
+        if (!$session->get('logged_in')) {
+            return redirect()->to('/');
         }
-        if (in_array('staff', $arguments) && !$session->get('isStaff')) {
-            return redirect()->to(base_url('/'))->with('error', 'Staff access only');
+
+        // Check user type for admin routes
+        if (strpos($request->getUri()->getPath(), 'admin') !== false) {
+            if (!$session->get('is_staff')) {
+                $session->setFlashdata('error', 'Access denied. Staff privileges required.');
+                return redirect()->to('home');
+            }
         }
-        if (in_array('user', $arguments) && $session->get('isStaff')) {
-            return redirect()->to(base_url('/'))->with('error', 'User access only');
-        }
+
+        return $request;
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
+        // Do something here after response is sent
     }
 }
