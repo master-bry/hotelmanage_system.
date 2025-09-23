@@ -12,9 +12,16 @@ abstract class BaseController extends Controller
 {
     protected $request;
     protected $helpers = [];
+    protected $session;
 
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
+        
+        $this->session = \Config\Services::session();
+        $this->helpers = array_merge($this->helpers, ['form', 'url', 'text']);
+        
+        // Load helpers
+        helper($this->helpers);
     }
 }
