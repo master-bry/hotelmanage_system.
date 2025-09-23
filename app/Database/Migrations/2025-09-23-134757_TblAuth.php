@@ -4,30 +4,31 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class TblUsers extends Migration
+class TblAuth extends Migration
 {
     public function up()
     {
-        $this->forge->addField([
+         $this->forge->addField([
             'id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'Email' => [
+            'username' => [
                 'type' => 'VARCHAR',
-                'constraint' => '255',
-                'unique' => true,
+                'constraint' => '100',
+                'null' => false,
             ],
-            'Password' => [
+            'email' => [
                 'type' => 'VARCHAR',
                 'constraint' => '255',
+                'null' => false,
             ],
-            'Username' => [
+            'password' => [
                 'type' => 'VARCHAR',
                 'constraint' => '255',
-                'null' => true,
+                'null' => false,
             ],
             'is_staff' => [
                 'type' => 'TINYINT',
@@ -42,23 +43,15 @@ class TblUsers extends Migration
                 'type' => 'DATETIME',
                 'null' => true,
             ],
-            'verification_code' => [
-                'type' => 'VARCHAR',
-                'constraint' => '50',
-                'null' => true,
-            ],
-            'is_verified' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 0,
-            ],
         ]);
-        $this->forge->addKey('id', true);
-        $this->forge->createTable('users');
+
+        $this->forge->addPrimaryKey('id');
+        $this->forge->addUniqueKey('email');
+        $this->forge->createTable('users', true);
     }
 
     public function down()
     {
-        $this->forge->dropTable('users');
+        $this->forge->dropTable('users', true);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class TblRoom extends Migration
+class TblStaff extends Migration
 {
     public function up()
     {
@@ -15,21 +15,33 @@ class TblRoom extends Migration
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'type' => [
+            'name' => [
                 'type' => 'VARCHAR',
                 'constraint' => '100',
+                'null' => false,
             ],
-            'bedding' => [
+            'position' => [
                 'type' => 'VARCHAR',
                 'constraint' => '100',
+                'null' => false,
+            ],
+            'department' => [
+                'type' => 'VARCHAR',
+                'constraint' => '100',
+                'null' => true,
+            ],
+            'created_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
             ],
         ]);
-        $this->forge->addKey('id', true);
-        $this->forge->createTable('room');
+
+        $this->forge->addPrimaryKey('id');
+        $this->forge->createTable('staff', true);
     }
 
     public function down()
     {
-        $this->forge->dropTable('room');
+        $this->forge->dropTable('staff', true);
     }
 }

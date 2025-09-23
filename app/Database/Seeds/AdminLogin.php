@@ -9,13 +9,22 @@ class AdminLogin extends Seeder
     public function run()
     {
         $data = [
-            'Email'    => 'admin@skybirdhotel.co.tz',
-            'Password' => password_hash('Admin@123', PASSWORD_BCRYPT),
-            'is_staff' => 1,
-            'is_verified' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            [
+                'username' => 'Admin User',
+                'email' => 'admin@skybird.com',
+                'password' => password_hash('admin123', PASSWORD_DEFAULT),
+                'is_staff' => 1,
+                'created_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'username' => 'John Doe',
+                'email' => 'john@test.com',
+                'password' => password_hash('password123', PASSWORD_DEFAULT),
+                'is_staff' => 0,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]
         ];
-        $this->db->table('users')->insert($data);
+
+        $this->db->table('users')->insertBatch($data);
     }
 }
