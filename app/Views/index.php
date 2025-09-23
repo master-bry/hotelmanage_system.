@@ -4,9 +4,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="<?= base_url('css/login.css') ?>" as="style">
+    <link rel="preload" href="<?= base_url('image/bluebirdlogo.png') ?>" as="image">
     <link rel="stylesheet" href="<?= base_url('css/login.css') ?>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
     <link rel="stylesheet" href="<?= base_url('css/flash.css') ?>">
     <title><?= esc($title ?? 'SKY Hotel') ?></title>
+    <style>
+        .auth_btn .loading { display: none; }
+        .auth_btn.submitting .loading { display: inline-block; }
+        .auth_btn.submitting { opacity: 0.7; cursor: not-allowed; }
+    </style>
 </head>
 <body>
     <section id="carouselExampleControls" class="carousel slide carousel_section" data-bs-ride="carousel">
@@ -33,7 +44,7 @@
         </div>
 
         <div class="auth_container">
-            <div id="Log_in">
+            <div id="auth_form" class="authsection user_login active">
                 <h2>Log In</h2>
                 <div class="role_btn">
                     <div class="btns active" data-type="user">User</div>
@@ -49,7 +60,7 @@
                     </script>
                 <?php endif; ?>
 
-                <form class="user_login" id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
+                <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
                     <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
                     <input type="hidden" name="login_type" value="user">
                     <div class="form-floating">
@@ -60,59 +71,261 @@
                         <input type="password" class="form-control" name="Password" placeholder=" " required>
                         <label for="Password">Password</label>
                     </div>
-                    <button type="submit" name="login_submit" class="auth_btn">Log In</button>
+                    <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
                     <div class="footer_line">
-                        <h6>Don't have an account? <span class="page_move_btn" onclick="signuppage()">Sign Up</span></h6>
-                    </div>
-                </form>
-
-                <form class="staff_login d-none" id="stafflogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
-                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                    <input type="hidden" name="login_type" value="staff">
-                    <div class="form-floating">
-                        <input type="email" class="form-control" name="Email" placeholder=" " required>
-                        <label for="Email">Email</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="Password" placeholder=" " required>
-                        <label for="Password">Password</label>
-                    </div>
-                    <button type="submit" name="staff_login_submit" class="auth_btn">Log In</button>
-                    <div class="footer_line">
-                        <h6>Don't have an account? <span class="page_move_btn" onclick="signuppage()">Sign Up</span></h6>
-                    </div>
-                </form>
-            </div>
-
-            <div id="sign_up" class="d-none">
-                <h2>Sign Up</h2>
-                <form class="user_signup" id="signupForm" action="<?= base_url('auth/ajaxSignup') ?>" method="POST">
-                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="Username" placeholder=" " required>
-                        <label for="Username">Username</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="email" class="form-control" name="Email" placeholder=" " required>
-                        <label for="Email">Email</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="Password" placeholder=" " required>
-                        <label for="Password">Password</label>
-                    </div>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" name="CPassword" placeholder=" " required>
-                        <label for="CPassword">Confirm Password</label>
-                    </div>
-                    <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up</button>
-                    <div class="footer_line">
-                        <h6>Already have an account? <span class="page_move_btn" onclick="loginpage()">Log In</span></h6>
+                        <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
                     </div>
                 </form>
             </div>
         </div>
     </section>
 
-    <script src="<?= base_url('javascript/index.js') ?>"></script>
+    <template id="signup_template">
+        <div class="authsection user_signup">
+            <h2>Sign Up</h2>
+            <form id="signupForm" action="<?= base_url('auth/ajaxSignup') ?>" method="POST">
+                <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                <div class="form-floating">
+                    <input type="text" class="form-control" name="Username" placeholder=" " required>
+                    <label for="Username">Username</label>
+                </div>
+                <div class="form-floating">
+                    <input type="email" class="form-control" name="Email" placeholder=" " required>
+                    <label for="Email">Email</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="Password" placeholder=" " required>
+                    <label for="Password">Password</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" name="CPassword" placeholder=" " required>
+                    <label for="CPassword">Confirm Password</label>
+                </div>
+                <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up <span class="loading">Loading...</span></button>
+                <div class="footer_line">
+                    <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
+                </div>
+            </form>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    
+    <!-- Add CSRF meta tag -->
+    <meta name="csrf-token" content="<?= csrf_hash() ?>">
+    
+    <script>
+        // Simple CSRF token management
+        const CSRF_TOKEN = '<?= csrf_hash() ?>';
+        const CSRF_FIELD_NAME = '<?= csrf_token() ?>';
+        
+        // Function to get CSRF token
+        function getCSRFToken() {
+            return CSRF_TOKEN;
+        }
+
+        // Function to add CSRF token to headers
+        function addCSRFHeaders(headers) {
+            headers.append('X-Requested-With', 'XMLHttpRequest');
+            headers.append('X-CSRF-TOKEN', getCSRFToken());
+            return headers;
+        }
+
+        let isSubmitting = false;
+
+        // Initialize AOS
+        if (typeof AOS !== 'undefined') {
+            AOS.init();
+        }
+
+        // Show session errors
+        <?php if (session()->has('error')): ?>
+            swal({
+                title: '<?= esc(session('error')) ?>',
+                icon: 'error',
+            });
+        <?php endif; ?>
+
+        // Form submission handlers
+        document.addEventListener('submit', function(e) {
+            if (e.target.id === 'userlogin') {
+                e.preventDefault();
+                handleLogin(e.target);
+            }
+            
+            if (e.target.id === 'signupForm') {
+                e.preventDefault();
+                handleSignup(e.target);
+            }
+        });
+
+        function handleLogin(form) {
+            if (isSubmitting) return;
+            
+            isSubmitting = true;
+            const submitBtn = form.querySelector('.auth_btn');
+            submitBtn.classList.add('submitting');
+
+            const formData = new FormData(form);
+            const headers = addCSRFHeaders(new Headers());
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: headers,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    swal({ title: 'Error', text: data.error, icon: 'error' });
+                }
+            })
+            .catch(error => {
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                console.error('Login error:', error);
+                swal({ title: 'Error', text: 'An error occurred. Please try again.', icon: 'error' });
+            });
+        }
+
+        function handleSignup(form) {
+            if (isSubmitting) return;
+            
+            isSubmitting = true;
+            const submitBtn = form.querySelector('.auth_btn');
+            submitBtn.classList.add('submitting');
+
+            const formData = new FormData(form);
+            const headers = addCSRFHeaders(new Headers());
+
+            // Basic client-side validation
+            const password = form.querySelector('input[name="Password"]').value;
+            const cPassword = form.querySelector('input[name="CPassword"]').value;
+            
+            if (password !== cPassword) {
+                swal({ title: 'Error', text: 'Passwords do not match', icon: 'error' });
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                return;
+            }
+
+            if (password.length < 8) {
+                swal({ title: 'Error', text: 'Password must be at least 8 characters', icon: 'error' });
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                return;
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: headers,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    swal({ title: 'Error', text: data.error, icon: 'error' });
+                }
+            })
+            .catch(error => {
+                submitBtn.classList.remove('submitting');
+                isSubmitting = false;
+                console.error('Signup error:', error);
+                swal({ title: 'Error', text: 'An error occurred. Please try again.', icon: 'error' });
+            });
+        }
+
+        // Page navigation
+        document.querySelectorAll('.page_move_btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetPage = this.textContent.trim();
+                
+                const authForm = document.getElementById('auth_form');
+                const signupTemplate = document.getElementById('signup_template');
+                
+                if (targetPage === 'Sign Up') {
+                    const signupContent = signupTemplate.content.cloneNode(true);
+                    authForm.innerHTML = '';
+                    authForm.appendChild(signupContent);
+                    authForm.classList.remove('user_login');
+                    authForm.classList.add('user_signup');
+                } else {
+                    authForm.innerHTML = `
+                        <h2>Log In</h2>
+                        <div class="role_btn">
+                            <div class="btns active" data-type="user">User</div>
+                            <div class="btns" data-type="staff">Staff</div>
+                        </div>
+                        <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
+                            <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                            <input type="hidden" name="login_type" value="user">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" name="Email" placeholder=" " required>
+                                <label for="Email">Email</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" name="Password" placeholder=" " required>
+                                <label for="Password">Password</label>
+                            </div>
+                            <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
+                            <div class="footer_line">
+                                <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
+                            </div>
+                        </form>
+                    `;
+                    authForm.classList.remove('user_signup');
+                    authForm.classList.add('user_login');
+                    
+                    // Re-attach event listeners
+                    document.getElementById('userlogin').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        handleLogin(this);
+                    });
+                }
+            });
+        });
+
+        // Role button functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btns')) {
+                const roleBtns = document.querySelectorAll('.role_btn .btns');
+                roleBtns.forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const loginType = e.target.getAttribute('data-type');
+                const loginForm = document.getElementById('userlogin');
+                if (loginForm) {
+                    const loginTypeInput = loginForm.querySelector('input[name="login_type"]');
+                    if (loginTypeInput) {
+                        loginTypeInput.value = loginType;
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
