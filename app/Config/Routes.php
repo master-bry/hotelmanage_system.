@@ -3,6 +3,8 @@ namespace Config;
 
 use CodeIgniter\Router\RouteCollection;
 
+/** @var RouteCollection $routes */
+
 $routes->setDefaultNamespace('App\Controllers');
 $routes->setDefaultController('Auth');
 $routes->setDefaultMethod('index');
@@ -10,6 +12,7 @@ $routes->setTranslateURIDashes(false);
 $routes->set404Override();
 $routes->setAutoRoute(false);
 
+// Authentication routes
 $routes->get('/', 'Auth::index', ['as' => 'login']);
 $routes->post('auth/login', 'Auth::login');
 $routes->post('auth/register', 'Auth::register');
@@ -17,11 +20,13 @@ $routes->match(['get', 'post'], 'auth/verify', 'Auth::verify');
 $routes->post('auth/resend', 'Auth::resend');
 $routes->get('auth/logout', 'Auth::logout');
 
+// Home routes (for regular users)
 $routes->group('home', ['filter' => 'auth:user'], function($routes) {
     $routes->get('/', 'Home::index');
     $routes->post('book', 'Home::book');
 });
 
+// Admin routes (for staff only)
 $routes->group('admin', ['filter' => 'auth:staff'], function($routes) {
     $routes->get('/', 'Admin::index');
     $routes->get('dashboard', 'Admin::dashboard');

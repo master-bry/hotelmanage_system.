@@ -4,32 +4,39 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\Services;
 
 class Auth implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $session = \Config\Services::session();
-        $uri = $request->getUri()->getPath();
-        log_message('debug', "Auth filter triggered for URI: $uri, Arguments: " . print_r($arguments, true));
-
+        $session = Services::session();
+        $auth = Services::authentication();
+        
+        // Check if user is logged in
         if (!$session->get('logged_in')) {
-            log_message('debug', 'No logged-in session found, redirecting to /');
-            return redirect()->to('/')->with('error', 'Please log in first');
+            return redirect()->to('/')->with('error', 'Please login first');
         }
-
-        if ($arguments && in_array('staff', $arguments) && !$session->get('is_staff')) {
-            log_message('debug', 'Non-staff user attempted to access staff route');
-            return redirect()->to('/')->with('error', 'Staff access required');
+        
+        // Check user type restrictions if provided
+        if (!empty($arguments)) {
+            $userType = $session->get('is_staff') ? 'staff' : 'user';
+            
+            if (!in_array($userType, $arguments)) {
+                if ($userType === 'staff') {
+                    return redirect()->to('admin')->with('error', 'Staff access required');
+                } else {
+                    return redirect()->to('home')->with('error', 'User access required');
+                }
+            }
         }
-
-        if ($arguments && in_array('user', $arguments) && $session->get('is_staff')) {
-            log_message('debug', 'Staff user attempted to access user route');
-            return redirect()->to('/')->with('error', 'User access required');
-        }
+        
+        return $request;
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
+        // Do something here after the controller execution
+        return $response;
     }
 }

@@ -17,6 +17,9 @@
         .auth_btn .loading { display: none; }
         .auth_btn.submitting .loading { display: inline-block; }
         .auth_btn.submitting { opacity: 0.7; cursor: not-allowed; }
+        .role_btn { display: flex; margin-bottom: 20px; }
+        .role_btn .btns { flex: 1; padding: 10px; text-align: center; cursor: pointer; border: 1px solid #ddd; }
+        .role_btn .btns.active { background: #007bff; color: white; }
     </style>
 </head>
 <body>
@@ -126,145 +129,167 @@
         const signupTemplate = document.getElementById('signup_template');
         const baseUrl = '<?= base_url() ?>';
 
-        // Client-side validation for signup
-        document.getElementById('signupForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (isSubmitting) return;
-            isSubmitting = true;
-
-            const username = document.querySelector('input[name="username"]').value;
-            const password = document.querySelector('input[name="password"]').value;
-            const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
-            const email = document.querySelector('input[name="email"]').value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (username.length < 3) {
-                swal('Error', 'Username must be at least 3 characters', 'error');
-                isSubmitting = false;
-                return;
-            }
-            if (!emailRegex.test(email)) {
-                swal('Error', 'Invalid email format', 'error');
-                isSubmitting = false;
-                return;
-            }
-            if (password !== confirmPassword) {
-                swal('Error', 'Passwords do not match', 'error');
-                isSubmitting = false;
-                return;
-            }
-            if (password.length < 8) {
-                swal('Error', 'Password must be at least 8 characters', 'error');
-                isSubmitting = false;
-                return;
-            }
-
-            const btn = this.querySelector('.auth_btn');
-            btn.classList.add('submitting');
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+        // Role button toggle - Fixed
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btns')) {
+                const roleBtns = document.querySelectorAll('.role_btn .btns');
+                roleBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const userLoginForm = document.querySelector('#userlogin');
+                if (userLoginForm) {
+                    userLoginForm.querySelector('input[name="user_type"]').value = e.target.dataset.type;
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                btn.classList.remove('submitting');
-                isSubmitting = false;
-                if (data.success) {
-                    swal({
-                        title: 'Success',
-                        text: data.message,
-                        icon: 'success'
-                    }).then(() => {
-                        window.location.href = data.redirect;
-                    });
-                } else {
-                    let errorMessage = data.message;
-                    if (data.errors) {
-                        errorMessage += '\n' + Object.values(data.errors).join('\n');
-                    }
-                    swal('Error', errorMessage, 'error');
-                }
-            })
-            .catch(error => {
-                btn.classList.remove('submitting');
-                isSubmitting = false;
-                swal('Error', 'Network error. Please try again.', 'error');
-            });
+            }
         });
 
-        // Client-side validation for login
-        document.getElementById('userlogin').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (isSubmitting) return;
-            isSubmitting = true;
+        // Client-side validation for signup
+        document.addEventListener('submit', function(e) {
+            if (e.target.id === 'signupForm') {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
 
-            const email = document.querySelector('input[name="email"]').value;
-            const password = document.querySelector('input[name="password"]').value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const username = e.target.querySelector('input[name="username"]').value;
+                const password = e.target.querySelector('input[name="password"]').value;
+                const confirmPassword = e.target.querySelector('input[name="confirm_password"]').value;
+                const email = e.target.querySelector('input[name="email"]').value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-            if (!emailRegex.test(email)) {
-                swal('Error', 'Invalid email format', 'error');
-                isSubmitting = false;
-                return;
-            }
-            if (password.length < 6) {
-                swal('Error', 'Password must be at least 6 characters', 'error');
-                isSubmitting = false;
-                return;
-            }
-
-            const btn = this.querySelector('.auth_btn');
-            btn.classList.add('submitting');
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                if (username.length < 3) {
+                    swal('Error', 'Username must be at least 3 characters', 'error');
+                    isSubmitting = false;
+                    return;
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                btn.classList.remove('submitting');
-                isSubmitting = false;
-                if (data.success) {
-                    swal({
-                        title: 'Success',
-                        text: data.message,
-                        icon: 'success',
-                        timer: 1500,
-                        buttons: false
-                    }).then(() => {
-                        window.location.href = data.redirect;
-                    });
-                } else {
-                    swal('Error', data.message, 'error');
+                if (!emailRegex.test(email)) {
+                    swal('Error', 'Invalid email format', 'error');
+                    isSubmitting = false;
+                    return;
                 }
-            })
-            .catch(error => {
-                btn.classList.remove('submitting');
-                isSubmitting = false;
-                swal('Error', 'Network error. Please try again.', 'error');
-            });
+                if (password !== confirmPassword) {
+                    swal('Error', 'Passwords do not match', 'error');
+                    isSubmitting = false;
+                    return;
+                }
+                if (password.length < 8) {
+                    swal('Error', 'Password must be at least 8 characters', 'error');
+                    isSubmitting = false;
+                    return;
+                }
+
+                const btn = e.target.querySelector('.auth_btn');
+                btn.classList.add('submitting');
+                const formData = new FormData(e.target);
+
+                fetch(e.target.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btn.classList.remove('submitting');
+                    isSubmitting = false;
+                    if (data.success) {
+                        swal({
+                            title: 'Success',
+                            text: data.message,
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.href = data.redirect;
+                        });
+                    } else {
+                        let errorMessage = data.message;
+                        if (data.errors) {
+                            errorMessage += '\n' + Object.values(data.errors).join('\n');
+                        }
+                        swal('Error', errorMessage, 'error');
+                    }
+                })
+                .catch(error => {
+                    btn.classList.remove('submitting');
+                    isSubmitting = false;
+                    swal('Error', 'Network error. Please try again.', 'error');
+                });
+            }
+
+            // Client-side validation for login
+            if (e.target.id === 'userlogin') {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                const email = e.target.querySelector('input[name="email"]').value;
+                const password = e.target.querySelector('input[name="password"]').value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!emailRegex.test(email)) {
+                    swal('Error', 'Invalid email format', 'error');
+                    isSubmitting = false;
+                    return;
+                }
+                if (password.length < 6) {
+                    swal('Error', 'Password must be at least 6 characters', 'error');
+                    isSubmitting = false;
+                    return;
+                }
+
+                const btn = e.target.querySelector('.auth_btn');
+                btn.classList.add('submitting');
+                const formData = new FormData(e.target);
+
+                fetch(e.target.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btn.classList.remove('submitting');
+                    isSubmitting = false;
+                    if (data.success) {
+                        swal({
+                            title: 'Success',
+                            text: data.message,
+                            icon: 'success',
+                            timer: 1500,
+                            buttons: false
+                        }).then(() => {
+                            window.location.href = data.redirect;
+                        });
+                    } else {
+                        swal('Error', data.message, 'error');
+                    // If verification required, redirect to verify page
+                        if (data.redirect) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 2000);
+                        }
+                    }
+                })
+                .catch(error => {
+                    btn.classList.remove('submitting');
+                    isSubmitting = false;
+                    swal('Error', 'Network error. Please try again.', 'error');
+                });
+            }
         });
 
         // Toggle to signup page
-        document.querySelectorAll('.page_move_btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('page_move_btn')) {
                 e.preventDefault();
-                if (btn.textContent.trim() === 'Sign Up') {
+                if (e.target.textContent.trim() === 'Sign Up') {
                     const signupContent = signupTemplate.content.cloneNode(true);
                     authForm.innerHTML = '';
                     authForm.appendChild(signupContent.querySelector('.user_signup'));
                     authForm.classList.remove('user_login');
                     authForm.classList.add('user_signup');
-                } else if (btn.textContent.trim() === 'Log In') {
+                } else if (e.target.textContent.trim() === 'Log In') {
                     authForm.innerHTML = `
                         <h2>Log In</h2>
                         <div class="role_btn">
@@ -291,20 +316,7 @@
                     authForm.classList.remove('user_signup');
                     authForm.classList.add('user_login');
                 }
-            });
-        });
-
-        // Role button toggle
-        const roleBtns = document.querySelectorAll('.role_btn .btns');
-        roleBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                roleBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const userLoginForm = authForm.querySelector('#userlogin');
-                if (userLoginForm) {
-                    userLoginForm.querySelector('input[name="user_type"]').value = btn.dataset.type;
-                }
-            });
+            }
         });
     </script>
 </body>

@@ -82,13 +82,16 @@ class Auth extends Controller
             ]);
         }
 
-        if (($userType === 'staff' && $user['is_staff'] != 1) || 
-            ($userType === 'user' && $user['is_staff'] == 1)) {
+        // FIXED: Only restrict staff login if user selects 'staff' but account is not staff
+        if ($userType === 'staff' && $user['is_staff'] != 1) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Invalid user type'
+                'message' => 'Staff access required. Please use staff login.'
             ]);
         }
+
+        // Allow staff to login as users, but not regular users to login as staff
+        // No restriction needed for user login - both staff and regular users can login as users
 
         $sessionData = [
             'user_id' => $user['id'],
@@ -219,7 +222,7 @@ class Auth extends Controller
             ]);
 
             $this->session->setFlashdata('success', 'Email verified successfully');
-            return redirect()->to('home');
+            return redirect()->to($user['is_staff'] ? base_url('admin') : base_url('home'));
         }
 
         $data = [
