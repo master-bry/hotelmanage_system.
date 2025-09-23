@@ -20,19 +20,18 @@ $routes->get('home', 'Home::index');
 $routes->post('home/book', 'Home::book');
 
 // Admin routes
-$routes->group('admin', function($routes) {
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Admin::index');
     $routes->get('dashboard', 'Admin::dashboard');
-    $routes->get('roombook', 'Admin::roombook');
-    $routes->post('roombook/add', 'Admin::addRoombook');
-    $routes->get('roombook/delete/(:num)', 'Admin::deleteRoombook/$1');
-    $routes->get('roombook/edit/(:num)', 'Admin::editRoombook/$1');
-    $routes->post('roombook/update/(:num)', 'Admin::updateRoombook/$1');
-    $routes->get('roombook/confirm/(:num)', 'Admin::confirmRoombook/$1');
+    $routes->get('bookings', 'Admin::bookings');
+    $routes->post('bookings/add', 'Admin::addBooking');
+    $routes->get('bookings/confirm/(:num)', 'Admin::confirmBooking/$1');
+    $routes->get('bookings/delete/(:num)', 'Admin::deleteBooking/$1');
+    $routes->get('bookings/edit/(:num)', 'Admin::editBooking/$1');
+    $routes->post('bookings/update/(:num)', 'Admin::updateBooking/$1');
     
-    $routes->get('payment', 'Admin::payment');
-    $routes->get('payment/delete/(:num)', 'Admin::deletePayment/$1');
-    $routes->get('payment/invoice/(:num)', 'Admin::invoice/$1');
+    $routes->get('payments', 'Admin::payments');
+    $routes->get('payments/invoice/(:num)', 'Admin::generateInvoice/$1');
     
     $routes->get('rooms', 'Admin::rooms');
     $routes->post('rooms/add', 'Admin::addRoom');
@@ -43,6 +42,11 @@ $routes->group('admin', function($routes) {
     $routes->get('staff/delete/(:num)', 'Admin::deleteStaff/$1');
     
     $routes->get('chart-data', 'Admin::getChartData');
+});
+
+// API routes
+$routes->group('api', function($routes) {
+    $routes->post('calculate-total', 'Api::calculateTotal');
 });
 
 // Catch-all route

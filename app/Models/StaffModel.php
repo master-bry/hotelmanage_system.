@@ -7,5 +7,14 @@ class StaffModel extends Model
 {
     protected $table = 'staff';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['name', 'work'];
+    protected $allowedFields = ['name', 'position', 'department', 'created_at'];
+    protected $useTimestamps = false;
+
+    public function getStaffByDepartment($department = null)
+    {
+        if ($department) {
+            return $this->where('department', $department)->findAll();
+        }
+        return $this->findAll();
+    }
 }
