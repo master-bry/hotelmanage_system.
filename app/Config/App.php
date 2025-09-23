@@ -40,7 +40,7 @@ class App extends BaseConfig
      * something else. If you have configured your web server to remove this file
      * from your site URIs, set this variable to an empty string.
      */
-    public string $indexPage = 'index.php';
+    public string $indexPage = '';
 
     /**
      * --------------------------------------------------------------------------
@@ -202,11 +202,14 @@ class App extends BaseConfig
      * --------------------------------------------------------------------------
      */
     public string $sessionDriver = 'CodeIgniter\Session\Handlers\DatabaseHandler';
+    public $sessionCookieName = 'skybird_session';
+    public $sessionSavePath = 'ci_sessions';
     public string $sessionDBGroup = 'default';
     public string $sessionTableName = 'ci_sessions';
-    public string $sessionCookieName = 'ci_session';
     public int $sessionExpiration = 7200;
     public bool $sessionMatchIP = false;
     public int $sessionTimeToUpdate = 300;
-    public bool $sessionRegenerateDestroy = false;
+    public bool $sessionRegenerateDestroy = true;
+    public $cookieSecure = false; // Set to true if using HTTPS
+
 }

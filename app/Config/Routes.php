@@ -1,53 +1,46 @@
 <?php
 namespace Config;
 
-use CodeIgniter\Router\RouteCollection;
+use App\Controllers\Auth;
+use App\Controllers\Home;
+use App\Controllers\Admin;
 
-/**
- * @var RouteCollection $routes
- */
+$routes = Services::routes();
 
-// Main route
-$routes->get('/', 'Auth::index');
-
-// Auth routes
+$routes->get('/', 'Auth::index', ['as' => 'login']);
 $routes->post('auth/login', 'Auth::login');
 $routes->post('auth/register', 'Auth::register');
+$routes->match(['get', 'post'], 'auth/verify', 'Auth::verify');
 $routes->get('auth/logout', 'Auth::logout');
 
-// Home routes
-$routes->get('home', 'Home::index');
-$routes->post('home/book', 'Home::book');
-
-// Admin routes
-$routes->group('admin', ['filter' => 'auth'], function($routes) {
-    $routes->get('/', 'Admin::index');
-    $routes->get('dashboard', 'Admin::dashboard');
-    $routes->get('bookings', 'Admin::bookings');
-    $routes->post('bookings/add', 'Admin::addBooking');
-    $routes->get('bookings/confirm/(:num)', 'Admin::confirmBooking/$1');
-    $routes->get('bookings/delete/(:num)', 'Admin::deleteBooking/$1');
-    $routes->get('bookings/edit/(:num)', 'Admin::editBooking/$1');
-    $routes->post('bookings/update/(:num)', 'Admin::updateBooking/$1');
-    
-    $routes->get('payments', 'Admin::payments');
-    $routes->get('payments/invoice/(:num)', 'Admin::generateInvoice/$1');
-    
-    $routes->get('rooms', 'Admin::rooms');
-    $routes->post('rooms/add', 'Admin::addRoom');
-    $routes->get('rooms/delete/(:num)', 'Admin::deleteRoom/$1');
-    
-    $routes->get('staff', 'Admin::staff');
-    $routes->post('staff/add', 'Admin::addStaff');
-    $routes->get('staff/delete/(:num)', 'Admin::deleteStaff/$1');
-    
-    $routes->get('chart-data', 'Admin::getChartData');
+$routes->group('home', ['filter' => 'auth:user'], function($routes) {
+    $routes->get('/', [Home::class, 'index']);
+    $routes->post('book', [Home::class, 'book']);
 });
 
-// API routes
-$routes->group('api', function($routes) {
-    $routes->post('calculate-total', 'Api::calculateTotal');
+$routes->group('admin', ['filter' => 'auth:staff'], function($routes) {
+    $routes->get('/', [Admin::class, 'index']);
+    $routes->get('dashboard', [Admin::class, 'dashboard']);
+    $routes->get('chartdata', [Admin::class, 'getChartData']);
+    $routes->get('roombook', [Admin::class, 'roombook']);
+    $routes->post('addroombook', [Admin::class, 'addroombook']);
+    $routes->get('payment', [Admin::class, 'payment']);
+    $routes->get('room', [Admin::class, 'room']);
+    $routes->get('staff', [Admin::class, 'staff']);
+    $routes->post('addroom', [Admin::class, 'addroom']);
+    $routes->get('roomdelete/(:num)', [Admin::class, 'roomdelete/$1']);
+    $routes->get('roombookdelete/(:num)', [Admin::class, 'roombookdelete/$1']);
+    $routes->get('paymantdelete/(:num)', [Admin::class, 'paymantdelete/$1']);
+    $routes->get('invoiceprint/(:num)', [Admin::class, 'invoiceprint/$1']);
+    $routes->post('exportdata', [Admin::class, 'exportdata']);
+    $routes->get('roomconfirm/(:num)', [Admin::class, 'roomconfirm/$1']);
+    $routes->get('roombookedit/(:num)', [Admin::class, 'roombookedit/$1']);
+    $routes->post('roombookupdate/(:num)', [Admin::class, 'roombookupdate/$1']);
+    $routes->get('staffdelete/(:num)', [Admin::class, 'staffdelete/$1']);
+    $routes->post('addstaff', [Admin::class, 'addstaff']);
 });
 
-// Catch-all route
-$routes->get('(:any)', 'Auth::index');
+$routes->get('(:any)', function() {
+    log_message('debug', 'Catch-all route triggered, redirecting to /');
+    return redirect()->to('/');
+});
