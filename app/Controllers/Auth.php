@@ -13,6 +13,7 @@ class Auth extends Controller
     {
         $this->session = \Config\Services::session();
         $this->userModel = new UserModel();
+        helper(['form', 'url']);
     }
 
     public function index()
@@ -25,74 +26,71 @@ class Auth extends Controller
 
     public function ajaxLogin()
     {
-        // Check if it's an AJAX request
-        if (!$this->request->isAJAX()) {
-            return $this->response->setStatusCode(405)->setJSON(['success' => false, 'error' => 'Method not allowed']);
+        // Allow both AJAX and regular POST requests
+        if ($this->request->getMethod() !== 'post') {
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(405)->setJSON([
+                    'success' => false, 
+                    'error' => 'Method not allowed. Use POST.'
+                ]);
+            }
+            return redirect()->to('/');
         }
 
         $email = $this->request->getPost('Email');
         $password = $this->request->getPost('Password');
         $loginType = $this->request->getPost('login_type');
 
-        $rules = [
-            'Email' => 'required|valid_email',
-            'Password' => 'required|min_length[6]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error' => 'Invalid email or password format'
-            ]);
+        // Basic validation
+        if (empty($email) || empty($password)) {
+            $error = 'Email and password are required';
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => false, 'error' => $error])
+                : redirect()->back()->with('error', $error);
         }
 
         $user = $this->userModel->checkLogin($email, $password);
         if (!$user) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error' => 'Invalid email or password'
-            ]);
+            $error = 'Invalid email or password';
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => false, 'error' => $error])
+                : redirect()->back()->with('error', $error);
         }
 
+        // Check login type
         if (($loginType === 'staff' && $user['is_staff'] != 1) || 
             ($loginType === 'user' && $user['is_staff'] == 1)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error' => 'Invalid login type for this account'
-            ]);
+            $error = 'Invalid login type for this account';
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => false, 'error' => $error])
+                : redirect()->back()->with('error', $error);
         }
 
+        // Set session
         $this->session->set([
             'usermail' => $user['Email'],
             'user_id' => $user['id'],
             'isStaff' => $user['is_staff']
         ]);
 
-        return $this->response->setJSON([
-            'success' => true,
-            'redirect' => $user['is_staff'] ? base_url('admin') : base_url('home')
-        ]);
+        $redirectUrl = $user['is_staff'] ? base_url('admin') : base_url('home');
+        
+        return $this->request->isAJAX() 
+            ? $this->response->setJSON(['success' => true, 'redirect' => $redirectUrl])
+            : redirect()->to($redirectUrl);
     }
 
     public function ajaxSignup()
     {
-        // Check if it's an AJAX request
-        if (!$this->request->isAJAX()) {
-            return $this->response->setStatusCode(405)->setJSON(['success' => false, 'error' => 'Method not allowed']);
-        }
-
-        $rules = [
-            'Username' => 'required|min_length[3]',
-            'Email' => 'required|valid_email|is_unique[users.Email]',
-            'Password' => 'required|min_length[8]|regex_match[/^(?=.*[a-zA-Z])(?=.*\d).*$/]',
-            'CPassword' => 'required|matches[Password]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error' => implode(', ', $this->validator->getErrors())
-            ]);
+        // Allow both AJAX and regular POST requests
+        if ($this->request->getMethod() !== 'post') {
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(405)->setJSON([
+                    'success' => false, 
+                    'error' => 'Method not allowed. Use POST.'
+                ]);
+            }
+            return redirect()->to('/');
         }
 
         $data = [
@@ -104,6 +102,22 @@ class Auth extends Controller
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
+        // Basic validation
+        if (empty($data['Username']) || empty($data['Email']) || empty($this->request->getPost('Password'))) {
+            $error = 'All fields are required';
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => false, 'error' => $error])
+                : redirect()->back()->with('error', $error);
+        }
+
+        // Check if email exists
+        if ($this->userModel->emailExists($data['Email'])) {
+            $error = 'Email already exists';
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => false, 'error' => $error])
+                : redirect()->back()->with('error', $error);
+        }
+
         if ($this->userModel->insert($data)) {
             $this->session->set([
                 'usermail' => $data['Email'],
@@ -111,16 +125,17 @@ class Auth extends Controller
                 'isStaff' => 0
             ]);
 
-            return $this->response->setJSON([
-                'success' => true,
-                'redirect' => base_url('home')
-            ]);
+            $redirectUrl = base_url('home');
+            
+            return $this->request->isAJAX() 
+                ? $this->response->setJSON(['success' => true, 'redirect' => $redirectUrl])
+                : redirect()->to($redirectUrl);
         }
 
-        return $this->response->setJSON([
-            'success' => false,
-            'error' => 'Failed to create account'
-        ]);
+        $error = 'Failed to create account';
+        return $this->request->isAJAX() 
+            ? $this->response->setJSON(['success' => false, 'error' => $error])
+            : redirect()->back()->with('error', $error);
     }
 
     public function logout()

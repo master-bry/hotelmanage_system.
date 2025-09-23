@@ -111,197 +111,168 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-        AOS.init();
-        let isSubmitting = false;
+ <script>
+// Debug version - replace your entire script section with this
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded - starting authentication system');
+    
+    let isSubmitting = false;
 
-        const authForm = document.getElementById('auth_form');
-        const signupTemplate = document.getElementById('signup_template');
-        const baseUrl = '<?= base_url() ?>';
-        const sessionError = '<?= session()->has('error') ? esc(session('error')) : '' ?>';
-
-        if (sessionError) {
-            swal({ title: sessionError, icon: 'error' });
+    // Debug function to check what's being sent
+    function debugRequest(form, formData) {
+        console.log('=== DEBUG REQUEST ===');
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+        console.log('Form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log('  ', key + ':', value);
         }
+        console.log('=== END DEBUG ===');
+    }
 
-        // Client-side validation for signup
-        document.getElementById('signupForm')?.addEventListener('submit', function(e) {
-            if (isSubmitting) {
-                e.preventDefault();
-                return;
-            }
-            isSubmitting = true;
-            setTimeout(() => { isSubmitting = false; }, 2000);
+    // Handle form submissions
+    document.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('Form submission intercepted');
+        
+        if (isSubmitting) {
+            console.log('Already submitting, ignoring');
+            return;
+        }
+        
+        const form = e.target;
+        const submitBtn = form.querySelector('.auth_btn');
+        const formData = new FormData(form);
+        
+        // Debug what we're sending
+        debugRequest(form, formData);
+        
+        isSubmitting = true;
+        submitBtn.classList.add('submitting');
+        submitBtn.disabled = true;
 
-            const password = document.querySelector('input[name="Password"]').value;
-            const cPassword = document.querySelector('input[name="CPassword"]').value;
-            const email = document.querySelector('input[name="Email"]').value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
-                isSubmitting = false;
-                return;
+        // Use fetch with proper error handling
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
-            if (password !== cPassword) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Passwords do not match', icon: 'error' });
-                isSubmitting = false;
-                return;
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            if (password.length < 8) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Password must be at least 8 characters', icon: 'error' });
-                isSubmitting = false;
-                return;
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            
+            submitBtn.classList.remove('submitting');
+            submitBtn.disabled = false;
+            isSubmitting = false;
+            
+            if (data.success) {
+                console.log('Success, redirecting to:', data.redirect);
+                window.location.href = data.redirect;
+            } else {
+                swal({
+                    title: 'Error',
+                    text: data.error || 'Unknown error occurred',
+                    icon: 'error'
+                });
             }
-
-            this.querySelector('.auth_btn').classList.add('submitting');
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                console.log('Signup response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                isSubmitting = false;
-                if (data.success) {
-                    window.location.href = data.redirect;
-                } else {
-                    swal({ title: 'Error', text: data.error, icon: 'error' });
-                }
-            })
-            .catch(error => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                isSubmitting = false;
-                console.error('Signup fetch error:', error);
-                swal({ title: 'Error', text: 'An error occurred during signup. Please try again.', icon: 'error' });
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            
+            submitBtn.classList.remove('submitting');
+            submitBtn.disabled = false;
+            isSubmitting = false;
+            
+            swal({
+                title: 'Network Error',
+                text: 'An error occurred during login. Please try again. Error: ' + error.message,
+                icon: 'error'
             });
         });
+    });
 
-        // Client-side validation for login
-        document.getElementById('userlogin')?.addEventListener('submit', function(e) {
-            if (isSubmitting) {
-                e.preventDefault();
-                return;
-            }
-            isSubmitting = true;
-            setTimeout(() => { isSubmitting = false; }, 2000);
-
-            const email = document.querySelector('input[name="Email"]').value;
-            const password = document.querySelector('input[name="Password"]').value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Invalid email format', icon: 'error' });
-                isSubmitting = false;
-                return;
-            }
-            if (password.length < 6) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Password must be at least 6 characters', icon: 'error' });
-                isSubmitting = false;
-                return;
-            }
-
-            this.querySelector('.auth_btn').classList.add('submitting');
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                console.log('Login response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                isSubmitting = false;
-                if (data.success) {
-                    window.location.href = data.redirect;
-                } else {
-                    swal({ title: 'Error', text: data.error, icon: 'error' });
-                }
-            })
-            .catch(error => {
-                this.querySelector('.auth_btn').classList.remove('submitting');
-                isSubmitting = false;
-                console.error('Login fetch error:', error);
-                swal({ title: 'Error', text: 'An error occurred during login. Please try again.', icon: 'error' });
-            });
-        });
-
-        // Toggle to signup page
-        document.querySelectorAll('.page_move_btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Page move button clicked:', btn.textContent.trim());
-                if (btn.textContent.trim() === 'Sign Up') {
-                    const signupContent = signupTemplate.content.cloneNode(true);
-                    authForm.innerHTML = '';
-                    authForm.appendChild(signupContent.querySelector('.user_signup'));
-                    authForm.classList.remove('user_login');
-                    authForm.classList.add('user_signup');
-                } else if (btn.textContent.trim() === 'Log In') {
-                    authForm.innerHTML = `
-                        <h2>Log In</h2>
-                        <div class="role_btn">
-                            <div class="btns active" data-type="user">User</div>
-                            <div class="btns" data-type="staff">Staff</div>
+    // Page navigation between login and signup
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('page_move_btn')) {
+            e.preventDefault();
+            console.log('Page move button clicked:', e.target.textContent);
+            
+            const targetPage = e.target.textContent.trim();
+            const authForm = document.getElementById('auth_form');
+            const signupTemplate = document.getElementById('signup_template');
+            
+            if (targetPage === 'Sign Up') {
+                const signupContent = signupTemplate.content.cloneNode(true);
+                authForm.innerHTML = '';
+                authForm.appendChild(signupContent);
+                authForm.classList.remove('user_login');
+                authForm.classList.add('user_signup');
+                console.log('Switched to signup page');
+            } else {
+                authForm.innerHTML = `
+                    <h2>Log In</h2>
+                    <div class="role_btn">
+                        <div class="btns active" data-type="user">User</div>
+                        <div class="btns" data-type="staff">Staff</div>
+                    </div>
+                    <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
+                        <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+                        <input type="hidden" name="login_type" value="user">
+                        <div class="form-floating">
+                            <input type="email" class="form-control" name="Email" placeholder=" " required>
+                            <label for="Email">Email</label>
                         </div>
-                        <form id="userlogin" action="<?= base_url('auth/ajaxLogin') ?>" method="POST">
-                            <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
-                            <input type="hidden" name="login_type" value="user">
-                            <div class="form-floating">
-                                <input type="email" class="form-control" name="Email" placeholder=" " required>
-                                <label for="Email">Email</label>
-                            </div>
-                            <div class="form-floating">
-                                <input type="password" class="form-control" name="Password" placeholder=" " required>
-                                <label for="Password">Password</label>
-                            </div>
-                            <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
-                            <div class="footer_line">
-                                <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
-                            </div>
-                        </form>
-                    `;
-                    if (sessionError) {
-                        swal({ title: sessionError, icon: 'error' });
-                    }
-                    authForm.classList.remove('user_signup');
-                    authForm.classList.add('user_login');
-                }
-            });
-        });
+                        <div class="form-floating">
+                            <input type="password" class="form-control" name="Password" placeholder=" " required>
+                            <label for="Password">Password</label>
+                        </div>
+                        <button type="submit" name="login_submit" class="auth_btn">Log In <span class="loading">Loading...</span></button>
+                        <div class="footer_line">
+                            <h6>Don't have an account? <span class="page_move_btn">Sign Up</span></h6>
+                        </div>
+                    </form>
+                `;
+                authForm.classList.remove('user_signup');
+                authForm.classList.add('user_login');
+                console.log('Switched to login page');
+            }
+        }
+    });
 
-        // Role button toggle
-        const roleBtns = document.querySelectorAll('.role_btn .btns');
-        roleBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                console.log('Role button clicked:', btn.dataset.type);
-                roleBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const userLoginForm = authForm.querySelector('#userlogin');
-                if (btn.dataset.type === 'user') {
-                    userLoginForm.querySelector('input[name="login_type"]').value = 'user';
-                } else {
-                    userLoginForm.querySelector('input[name="login_type"]').value = 'staff';
+    // Role button functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btns')) {
+            console.log('Role button clicked:', e.target.dataset.type);
+            
+            const roleBtns = document.querySelectorAll('.role_btn .btns');
+            roleBtns.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            const loginType = e.target.getAttribute('data-type');
+            const loginForm = document.getElementById('userlogin');
+            if (loginForm) {
+                const loginTypeInput = loginForm.querySelector('input[name="login_type"]');
+                if (loginTypeInput) {
+                    loginTypeInput.value = loginType;
+                    console.log('Login type set to:', loginType);
                 }
-            });
-        });
-    </script>
+            }
+        }
+    });
+
+    console.log('Authentication system initialized');
+});
+</script>  
+    <script src ='/javascript/index.js'></script>
 </body>
 </html>
