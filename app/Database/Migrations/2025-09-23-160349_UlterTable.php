@@ -21,6 +21,11 @@ class UlterTable extends Migration
                 'null' => true,
                 'after' => 'is_verified',
             ],
+            'verification_expires' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'after' => 'verification_code',
+            ],
         ];
         $this->forge->addColumn('users', $fields);
 
@@ -35,7 +40,9 @@ class UlterTable extends Migration
     {
         $this->forge->dropColumn('users', 'is_verified');
         $this->forge->dropColumn('users', 'verification_code');
+        $this->forge->dropColumn('users', 'verification_expires');
         $this->db->query('DROP INDEX idx_email ON users');
         $this->db->query('DROP INDEX idx_verification_code ON users');
+        
     }
 }

@@ -7,16 +7,6 @@
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
         .content { background: #f9f9f9; padding: 30px; }
-        .verification-code { 
-            background: #3498db; 
-            color: white; 
-            padding: 15px; 
-            font-size: 24px; 
-            font-weight: bold; 
-            text-align: center; 
-            margin: 20px 0;
-            border-radius: 5px;
-        }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
     </style>
 </head>
@@ -24,26 +14,30 @@
     <div class="container">
         <div class="header">
             <h1>SkyBird Hotel</h1>
-            <p>Email Verification</p>
+            <p>Welcome Aboard!</p>
         </div>
         
         <div class="content">
-            <h2>Hello <?= esc($userName) ?>,</h2>
-            <p>Thank you for registering with SkyBird Hotel. To complete your registration, please use the following verification code:</p>
+            <h2>Welcome to SkyBird Hotel, <?= esc($userName) ?>! 🎉</h2>
             
-            <div class="verification-code">
-                <?= esc($verificationCode) ?>
-            </div>
+            <p>We're excited to have you as part of our community. Your account has been successfully verified and you can now:</p>
             
-            <p>This code will expire in 30 minutes.</p>
-            <p>If you didn't create an account with us, please ignore this email.</p>
+            <ul>
+                <li>Book rooms and manage your reservations</li>
+                <li>Access exclusive member discounts</li>
+                <li>Receive special offers and promotions</li>
+                <li>Manage your profile and preferences</li>
+            </ul>
+            
+            <p>Ready to book your first stay? <a href="http://localhost:8080/home">Start exploring our rooms</a>!</p>
+            
+            <p>If you have any questions, feel free to contact our support team.</p>
             
             <p>Best regards,<br>The SkyBird Hotel Team</p>
         </div>
         
         <div class="footer">
             <p>&copy; <?= $year ?> SkyBird Hotel. All rights reserved.</p>
-            <p>This is an automated message, please do not reply to this email.</p>
         </div>
     </div>
 </body>
