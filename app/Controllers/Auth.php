@@ -25,8 +25,9 @@ class Auth extends Controller
 
     public function ajaxLogin()
     {
+        // Check if it's an AJAX request
         if (!$this->request->isAJAX()) {
-            return $this->response->setStatusCode(405)->setJSON(['error' => 'Method not allowed']);
+            return $this->response->setStatusCode(405)->setJSON(['success' => false, 'error' => 'Method not allowed']);
         }
 
         $email = $this->request->getPost('Email');
@@ -41,7 +42,7 @@ class Auth extends Controller
         if (!$this->validate($rules)) {
             return $this->response->setJSON([
                 'success' => false,
-                'error' => 'Invalid email or password'
+                'error' => 'Invalid email or password format'
             ]);
         }
 
@@ -57,7 +58,7 @@ class Auth extends Controller
             ($loginType === 'user' && $user['is_staff'] == 1)) {
             return $this->response->setJSON([
                 'success' => false,
-                'error' => 'Invalid login type'
+                'error' => 'Invalid login type for this account'
             ]);
         }
 
@@ -75,8 +76,9 @@ class Auth extends Controller
 
     public function ajaxSignup()
     {
+        // Check if it's an AJAX request
         if (!$this->request->isAJAX()) {
-            return $this->response->setStatusCode(405)->setJSON(['error' => 'Method not allowed']);
+            return $this->response->setStatusCode(405)->setJSON(['success' => false, 'error' => 'Method not allowed']);
         }
 
         $rules = [

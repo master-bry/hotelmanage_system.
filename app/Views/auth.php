@@ -11,7 +11,6 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link rel="stylesheet" href="<?= base_url('css/flash.css') ?>">
     <title><?= esc($title ?? 'SKY Hotel') ?></title>
     <style>
@@ -102,9 +101,6 @@
                     <input type="password" class="form-control" name="CPassword" placeholder=" " required>
                     <label for="CPassword">Confirm Password</label>
                 </div>
-                <div class="mb-3">
-                    <div class="g-recaptcha" data-sitekey="your-recaptcha-site-key"></div> <!-- Replace with your Google reCAPTCHA site key -->
-                </div>
                 <button type="submit" name="user_signup_submit" class="auth_btn">Sign Up <span class="loading">Loading...</span></button>
                 <div class="footer_line">
                     <h6>Already have an account? <span class="page_move_btn">Log In</span></h6>
@@ -140,7 +136,6 @@
             const password = document.querySelector('input[name="Password"]').value;
             const cPassword = document.querySelector('input[name="CPassword"]').value;
             const email = document.querySelector('input[name="Email"]').value;
-            const recaptcha = document.querySelector('textarea[name="g-recaptcha-response"]').value;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (!emailRegex.test(email)) {
@@ -161,12 +156,6 @@
                 isSubmitting = false;
                 return;
             }
-            if (!recaptcha) {
-                e.preventDefault();
-                swal({ title: 'Error', text: 'Please complete the CAPTCHA', icon: 'error' });
-                isSubmitting = false;
-                return;
-            }
 
             this.querySelector('.auth_btn').classList.add('submitting');
             const formData = new FormData(this);
@@ -177,7 +166,10 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Signup response status:', response.status);
+                return response.json();
+            })
             .then(data => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
                 isSubmitting = false;
@@ -190,6 +182,7 @@
             .catch(error => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
                 isSubmitting = false;
+                console.error('Signup fetch error:', error);
                 swal({ title: 'Error', text: 'An error occurred during signup. Please try again.', icon: 'error' });
             });
         });
@@ -229,7 +222,10 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Login response status:', response.status);
+                return response.json();
+            })
             .then(data => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
                 isSubmitting = false;
@@ -242,6 +238,7 @@
             .catch(error => {
                 this.querySelector('.auth_btn').classList.remove('submitting');
                 isSubmitting = false;
+                console.error('Login fetch error:', error);
                 swal({ title: 'Error', text: 'An error occurred during login. Please try again.', icon: 'error' });
             });
         });
@@ -250,6 +247,7 @@
         document.querySelectorAll('.page_move_btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                console.log('Page move button clicked:', btn.textContent.trim());
                 if (btn.textContent.trim() === 'Sign Up') {
                     const signupContent = signupTemplate.content.cloneNode(true);
                     authForm.innerHTML = '';
@@ -293,6 +291,7 @@
         const roleBtns = document.querySelectorAll('.role_btn .btns');
         roleBtns.forEach(btn => {
             btn.addEventListener('click', () => {
+                console.log('Role button clicked:', btn.dataset.type);
                 roleBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 const userLoginForm = authForm.querySelector('#userlogin');
