@@ -3,19 +3,16 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\UserModel;
-use CodeIgniter\Email\Email;
 
 class Auth extends Controller
 {
     protected $userModel;
     protected $session;
-    protected $email;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->session = \Config\Services::session();
-        $this->email = \Config\Services::email();
         helper(['form', 'url']);
     }
 
@@ -73,7 +70,6 @@ class Auth extends Controller
 
         $isVerified = isset($user['is_verified']) ? $user['is_verified'] : 1;
         if ($isVerified == 0) {
-            // Store email in session for resend option
             $this->session->setTempdata('pending_email', $email, 3600);
             return $this->response->setJSON([
                 'success' => false,
@@ -82,16 +78,12 @@ class Auth extends Controller
             ]);
         }
 
-        // FIXED: Only restrict staff login if user selects 'staff' but account is not staff
         if ($userType === 'staff' && $user['is_staff'] != 1) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Staff access required. Please use staff login.'
             ]);
         }
-
-        // Allow staff to login as users, but not regular users to login as staff
-        // No restriction needed for user login - both staff and regular users can login as users
 
         $sessionData = [
             'user_id' => $user['id'],
@@ -134,28 +126,33 @@ class Auth extends Controller
             ]);
         }
 
-        $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
-
         $userData = [
             'username' => $this->request->getPost('username'),
             'email' => $this->request->getPost('email'),
             'password' => $this->request->getPost('password'),
             'is_staff' => 0,
-            'is_verified' => 0,
-            'verification_code' => $verificationCode,
             'created_at' => date('Y-m-d H:i:s')
         ];
 
         if ($this->userModel->insert($userData)) {
             $userId = $this->userModel->getInsertID();
+            $user = $this->userModel->find($userId);
+            $brevo = service('brevo');
 
-            $this->email->setFrom('no-reply@skybird.com', 'SkyBird Hotel');
-            $this->email->setTo($userData['email']);
-            $this->email->setSubject('Verify Your Email Address');
-            $this->email->setMessage("Your verification code is: <b>$verificationCode</b><br>Please enter this code to verify your email.");
-            
-            if (!$this->email->send()) {
-                log_message('error', 'Failed to send verification email to ' . $userData['email']);
+            $htmlContent = view('verification', [
+                'userName' => $userData['username'],
+                'verificationCode' => $user['verification_code'],
+                'year' => date('Y')
+            ]);
+
+            $result = $brevo->sendEmail(
+                $userData['email'],
+                'Verify Your Email Address',
+                $htmlContent
+            );
+
+            if (!$result['success']) {
+                log_message('error', 'Failed to send verification email to ' . $userData['email'] . ': ' . $result['error']);
                 $this->userModel->delete($userId);
                 return $this->response->setJSON([
                     'success' => false,
@@ -198,31 +195,23 @@ class Auth extends Controller
                 return redirect()->to('/');
             }
 
-            $user = $this->userModel->where('email', $email)
-                                   ->where('verification_code', $code)
-                                   ->first();
+            if ($this->userModel->verifyUser($email, $code)) {
+                $user = $this->userModel->where('email', $email)->first();
+                $this->session->removeTempdata('pending_email');
+                $this->session->set([
+                    'user_id' => $user['id'],
+                    'username' => $user['username'],
+                    'email' => $user['email'],
+                    'is_staff' => $user['is_staff'],
+                    'logged_in' => true
+                ]);
 
-            if (!$user) {
-                $this->session->setFlashdata('error', 'Invalid verification code');
-                return redirect()->to('auth/verify');
+                $this->session->setFlashdata('success', 'Email verified successfully');
+                return redirect()->to($user['is_staff'] ? base_url('admin') : base_url('home'));
             }
 
-            $this->userModel->update($user['id'], [
-                'is_verified' => 1,
-                'verification_code' => null
-            ]);
-
-            $this->session->removeTempdata('pending_email');
-            $this->session->set([
-                'user_id' => $user['id'],
-                'username' => $user['username'],
-                'email' => $user['email'],
-                'is_staff' => $user['is_staff'],
-                'logged_in' => true
-            ]);
-
-            $this->session->setFlashdata('success', 'Email verified successfully');
-            return redirect()->to($user['is_staff'] ? base_url('admin') : base_url('home'));
+            $this->session->setFlashdata('error', 'Invalid verification code');
+            return redirect()->to('auth/verify');
         }
 
         $data = [
@@ -242,7 +231,6 @@ class Auth extends Controller
         }
 
         $email = $this->session->getTempdata('pending_email');
-
         if (!$email) {
             return $this->response->setJSON([
                 'success' => false,
@@ -250,8 +238,16 @@ class Auth extends Controller
             ]);
         }
 
-        $user = $this->userModel->where('email', $email)->first();
+        $resendKey = 'resend_' . md5($email);
+        $resendCount = $this->session->getTempdata($resendKey) ?? 0;
+        if ($resendCount >= 3) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Too many resend attempts. Please try again later.'
+            ]);
+        }
 
+        $user = $this->userModel->where('email', $email)->first();
         if (!$user || $user['is_verified'] == 1) {
             return $this->response->setJSON([
                 'success' => false,
@@ -259,25 +255,30 @@ class Auth extends Controller
             ]);
         }
 
-        $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
-
+        $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $this->userModel->update($user['id'], [
-            'verification_code' => $verificationCode
+            'verification_code' => $verificationCode,
+            'verification_expires' => date('Y-m-d H:i:s', strtotime('+30 minutes'))
         ]);
 
-        $this->email->setFrom('no-reply@skybird.com', 'SkyBird Hotel');
-        $this->email->setTo($email);
-        $this->email->setSubject('Verify Your Email Address');
-        $this->email->setMessage("Your new verification code is: <b>$verificationCode</b><br>Please enter this code to verify your email.");
+        $brevo = service('brevo');
+        $htmlContent = view('verification', [
+            'userName' => $user['username'],
+            'verificationCode' => $verificationCode,
+            'year' => date('Y')
+        ]);
 
-        if (!$this->email->send()) {
-            log_message('error', 'Failed to resend verification email to ' . $email);
+        $result = $brevo->sendEmail($email, 'Verify Your Email Address', $htmlContent);
+
+        if (!$result['success']) {
+            log_message('error', 'Failed to resend verification email to ' . $email . ': ' . $result['error']);
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Failed to resend verification email'
             ]);
         }
 
+        $this->session->setTempdata($resendKey, $resendCount + 1, 3600);
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Verification code resent. Please check your email.'

@@ -125,25 +125,16 @@
         AOS.init();
         let isSubmitting = false;
 
-        const authForm = document.getElementById('auth_form');
-        const signupTemplate = document.getElementById('signup_template');
-        const baseUrl = '<?= base_url() ?>';
-
-        // Role button toggle - Fixed
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btns')) {
-                const roleBtns = document.querySelectorAll('.role_btn .btns');
-                roleBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                const userLoginForm = document.querySelector('#userlogin');
-                if (userLoginForm) {
-                    userLoginForm.querySelector('input[name="user_type"]').value = e.target.dataset.type;
-                }
-            }
+        // Role toggle
+        document.querySelectorAll('.role_btn .btns').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.role_btn .btns').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelector('input[name="user_type"]').value = this.dataset.type;
+            });
         });
 
-        // Client-side validation for signup
+        // Form submissions
         document.addEventListener('submit', function(e) {
             if (e.target.id === 'signupForm') {
                 e.preventDefault();
@@ -151,10 +142,11 @@
                 isSubmitting = true;
 
                 const username = e.target.querySelector('input[name="username"]').value;
+                const email = e.target.querySelector('input[name="email"]').value;
                 const password = e.target.querySelector('input[name="password"]').value;
                 const confirmPassword = e.target.querySelector('input[name="confirm_password"]').value;
-                const email = e.target.querySelector('input[name="email"]').value;
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
 
                 if (username.length < 3) {
                     swal('Error', 'Username must be at least 3 characters', 'error');
@@ -166,13 +158,13 @@
                     isSubmitting = false;
                     return;
                 }
-                if (password !== confirmPassword) {
-                    swal('Error', 'Passwords do not match', 'error');
+                if (!passwordRegex.test(password)) {
+                    swal('Error', 'Password must be at least 8 characters and contain letters and numbers', 'error');
                     isSubmitting = false;
                     return;
                 }
-                if (password.length < 8) {
-                    swal('Error', 'Password must be at least 8 characters', 'error');
+                if (password !== confirmPassword) {
+                    swal('Error', 'Passwords do not match', 'error');
                     isSubmitting = false;
                     return;
                 }
@@ -215,7 +207,6 @@
                 });
             }
 
-            // Client-side validation for login
             if (e.target.id === 'userlogin') {
                 e.preventDefault();
                 if (isSubmitting) return;
@@ -263,7 +254,6 @@
                         });
                     } else {
                         swal('Error', data.message, 'error');
-                    // If verification required, redirect to verify page
                         if (data.redirect) {
                             setTimeout(() => {
                                 window.location.href = data.redirect;
@@ -279,17 +269,18 @@
             }
         });
 
-        // Toggle to signup page
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('page_move_btn')) {
                 e.preventDefault();
                 if (e.target.textContent.trim() === 'Sign Up') {
-                    const signupContent = signupTemplate.content.cloneNode(true);
+                    const signupContent = document.getElementById('signup_template').content.cloneNode(true);
+                    const authForm = document.getElementById('auth_form');
                     authForm.innerHTML = '';
                     authForm.appendChild(signupContent.querySelector('.user_signup'));
                     authForm.classList.remove('user_login');
                     authForm.classList.add('user_signup');
                 } else if (e.target.textContent.trim() === 'Log In') {
+                    const authForm = document.getElementById('auth_form');
                     authForm.innerHTML = `
                         <h2>Log In</h2>
                         <div class="role_btn">

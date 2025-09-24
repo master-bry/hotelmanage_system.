@@ -32,7 +32,6 @@ $routes->group('admin', ['filter' => 'auth:staff'], function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('chartdata', 'Admin::getChartData');
     
-    // Bookings routes
     $routes->get('bookings', 'Admin::bookings');
     $routes->post('bookings/add', 'Admin::addBooking');
     $routes->get('bookings/confirm/(:num)', 'Admin::confirmBooking/$1');
@@ -40,22 +39,18 @@ $routes->group('admin', ['filter' => 'auth:staff'], function($routes) {
     $routes->get('bookings/edit/(:num)', 'Admin::editBooking/$1');
     $routes->post('bookings/update/(:num)', 'Admin::updateBooking/$1');
     
-    // Payments routes
     $routes->get('payments', 'Admin::payments');
     $routes->get('payments/invoice/(:num)', 'Admin::generateInvoice/$1');
     
-    // Rooms routes
     $routes->get('rooms', 'Admin::rooms');
     $routes->post('rooms/add', 'Admin::addRoom');
     $routes->get('rooms/delete/(:num)', 'Admin::deleteRoom/$1');
     
-    // Staff routes
     $routes->get('staff', 'Admin::staff');
     $routes->post('staff/add', 'Admin::addStaff');
     $routes->get('staff/delete/(:num)', 'Admin::deleteStaff/$1');
 });
 
-// Catch-all route for undefined routes
 $routes->get('(:any)', function() {
     return redirect()->to('/');
 });

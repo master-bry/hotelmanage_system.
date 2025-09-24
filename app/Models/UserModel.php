@@ -30,7 +30,6 @@ class UserModel extends Model
 
     protected function generateVerificationCode(array $data)
     {
-        // Generate 6-digit verification code
         $data['data']['verification_code'] = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $data['data']['verification_expires'] = date('Y-m-d H:i:s', strtotime('+30 minutes'));
         $data['data']['is_verified'] = 0;
@@ -46,7 +45,6 @@ class UserModel extends Model
                     ->first();
 
         if ($user) {
-            // Update user as verified
             return $this->update($user['id'], [
                 'is_verified' => 1,
                 'verification_code' => null,
