@@ -6,7 +6,6 @@ use CodeIgniter\Database\Seeder;
 
 class AdminLogin extends Seeder
 {
-    
     public function run()
     {
         $data = [
