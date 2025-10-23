@@ -9,6 +9,7 @@ class AdminLogin extends Seeder
     public function run()
     {
         $data = [
+            
             [
                 'username' => 'Admin User',
                 'email' => 'admin@skybird.com',
