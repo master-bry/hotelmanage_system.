@@ -17,7 +17,7 @@ class AdminLogin extends Seeder
                 'is_staff' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
             ],
-            
+        
             [
                 'username' => 'John Doe',
                 'email' => 'john@test.com',
