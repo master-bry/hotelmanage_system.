@@ -121,7 +121,7 @@ class Database extends Config
     //            'datetime' => 'Y-m-d H:i:s',
     //            'time'     => 'H:i:s',
     //        ],
-    //    ];
+    //    ]; 
 
     //    /**
     //     * Sample database connection for OCI8.
