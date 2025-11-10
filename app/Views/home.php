@@ -165,7 +165,6 @@
             var modal = new bootstrap.Modal(document.getElementById('guestdetailpanel'));
             modal.show();
         }
-
     
         document.querySelector('input[name="check_in"]').addEventListener('change', function() {
             const checkOut = document.querySelector('input[name="check_out"]');
