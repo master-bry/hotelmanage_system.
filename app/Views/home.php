@@ -166,7 +166,7 @@
             modal.show();
         }
     
-    
+     
         document.querySelector('input[name="check_in"]').addEventListener('change', function() {
             const checkOut = document.querySelector('input[name="check_out"]');
             const minDate = new Date(this.value);
