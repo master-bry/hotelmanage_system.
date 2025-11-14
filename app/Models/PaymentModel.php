@@ -52,7 +52,6 @@ class PaymentModel extends Model
             'final_total' => $finalTotal,
         ];
     }
-
     public function getPaymentByBooking($bookingId)
     {
         return $this->where('booking_id', $bookingId)->first();
