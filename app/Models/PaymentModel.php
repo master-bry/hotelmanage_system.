@@ -46,7 +46,7 @@ class PaymentModel extends Model
         $finalTotal = $roomTotal + $bedTotal + $mealTotal;
 
         return [
-        
+    
             'room_total' => $roomTotal,
             'bed_total' => $bedTotal,
             'meal_total' => $mealTotal,
